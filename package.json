@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Err0rCode7/nodejs-httpserver#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "mime": "^2.4.5",
     "nodemon": "^2.0.4"
   }
 }

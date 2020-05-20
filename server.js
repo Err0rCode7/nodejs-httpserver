@@ -3,11 +3,13 @@
 const express = require('express');
 const imageRouter = require('./routes/image.js');
 const videoRouter = require('./routes/video.js');
+
 // http server 생성 요청과, 응답을 기본 파라미터로 한다.
 
 const app = express();
 
 app.use('/images', imageRouter);
+app.use('/videos', videoRouter);
 
 /* 
 // 라우터 get 방식 예시
