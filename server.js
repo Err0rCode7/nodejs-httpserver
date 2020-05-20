@@ -1,12 +1,24 @@
 // require 은 import와 비슷한 개념으로 객체, 변수 등을 가져온다.
 //const http = require('http');
 const express = require('express');
+const cors = require('cors');
 const imageRouter = require('./routes/image.js');
 const videoRouter = require('./routes/video.js');
 
 // http server 생성 요청과, 응답을 기본 파라미터로 한다.
 
 const app = express();
+
+// cors : cross-origin http enable
+
+const corsOptions = {
+    
+    origin: 'http://localhost:7070',
+    credentials: true,
+    
+};
+
+app.use(cors(corsOptions));
 
 app.use('/images', imageRouter);
 app.use('/videos', videoRouter);
