@@ -3,8 +3,6 @@ const fs = require('fs');
 const mime = require('mime');
 const router = express.Router();
 
-let videoSrc = '';
-
 router.get('/:videoId', (req,res,next) => {
 
     // Add Access-Control-Allow-Origin response header 
@@ -14,18 +12,19 @@ router.get('/:videoId', (req,res,next) => {
     const videoId = req.params.videoId;
     console.log(videoId);
 
-    const videoPath = 'public/videos/'+videoId;
+    const videoPath = './public/videos/'+videoId;
     videoSrc = videoPath;
     const videoMime = mime.getType(videoPath);
 
     console.log(videoPath);
     console.log(videoMime);
 
+    // send video
     const stream = fs.createReadStream(videoPath);
     let count = 0;
     stream.on('data', (data) => {
         
-        console.log('data count= '+ (count = count+1));
+        console.log('video data count= '+ (count = count+1));
         res.write(data);
     });
     
@@ -58,7 +57,7 @@ router.get('/:videoId', (req,res,next) => {
         }
     });
     */
-    // send video
+    
 
 });
 

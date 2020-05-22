@@ -2,23 +2,27 @@
 //const http = require('http');
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+const path = require('path');
+const multer = require('multer');
+
+// Router
 const imageRouter = require('./routes/image.js');
 const videoRouter = require('./routes/video.js');
-
-// http server 생성 요청과, 응답을 기본 파라미터로 한다.
 
 const app = express();
 
 // cors : cross-origin http enable
-
 const corsOptions = {
-    
     origin: 'http://localhost:7070',
     credentials: true,
-    
 };
-
 app.use(cors(corsOptions));
+
+// bodyParser ( http - body)
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended : true}));
+
 
 app.use('/images', imageRouter);
 app.use('/videos', videoRouter);
@@ -33,6 +37,7 @@ app.get('/', (req,res,next) => {
 
 /*
 // 일반 nodejs 버전
+// http server 생성 요청과, 응답을 기본 파라미터로 한다.
 const server = http.createServer( (request, response) => {
     const { headers, method, _url:url } = request;
 

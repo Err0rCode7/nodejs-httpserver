@@ -1,5 +1,3 @@
-
-
 const Src = document.querySelector(".js-src");
 
 console.log(Src.src);
