@@ -12,25 +12,108 @@ connection.connect((err) => {
     }
 });
 
-router.get('/:id', (req, res) => {
+router.get('/', (req, res) => {
 
-    /* sql select userId */
-    const query = `select * from user where user_id = "${req.params.id}"`
-    connection.query(query, (err, rows) => {
-            if (err) {
-                console.log('query error : '+ err);
-                throw err;
+    const query = `select user_id, nick_name, first_name, last_name, date_created, date_updated from user`;
+    connection.query(query, (err, rows, field) => {
+            if(err){
+                console.log('User Get_all_user Query '+ err);
+                res.writeHead(404, {'Content-Type':'application/json'});
+                res.end('{"success": false}'); //json object로 변경
             } else {
                 //rows is array type containing json
-                console.log(rows[0]);
+                console.log(field);
+                rows.unshift({"success":true});
                 res.writeHead(200, {'Content-Type':'application/json'});
-                
-                //json object로 변경
-                res.end(JSON.stringify(rows[0]));
+                res.end(JSON.stringify(rows)); //json object로 변경
             }
             
     })
-    /* sql select userID */
+});
+
+router.get('/:id', (req, res) => {
+
+    const query = `select * from user where user_id = "${req.params.id}"`;
+    connection.query(query, (err, rows) => {
+            if(err){
+                console.log('User Get_user Query '+ err);
+                res.writeHead(404, {'Content-Type':'application/json'});
+                res.end('{"success": false}'); //json object로 변경
+            } else {
+                //rows is array type containing json
+                //rows[0]["password"] = null;
+
+                rows.unshift({"success":true});
+                res.writeHead(200, {'Content-Type':'application/json'});
+                res.end(JSON.stringify(rows)); //json object로 변경
+            }
+            
+    })
+
+});
+
+router.post('/', (req, res) => {
+    
+    console.log(req.body);
+    const query = `insert into user (user_id, password, nick_name, first_name, last_name, date_created, date_updated) \
+    values("${req.body.user_id}", password("${req.body.password}"), "${req.body.nick_name}", "${req.body.first_name}", "${req.body.last_name}", now(), now())`;
+    
+    
+    connection.query(query, (err, rows) =>{
+        if(err){
+            console.log('User Post Query '+ err);
+
+            res.writeHead(404, {'Content-Type':'application/json'});
+            res.end('{"success": false}'); 
+
+        } else {
+            
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end('{"success": true}'); 
+
+        }
+    });
+    
+});
+
+router.put('/', (req, res) => {
+    
+    const query = `update user set password=password("${req.body.password}"), nick_name="${req.body.nick_name}", first_name="${req.body.first_name}", \
+    last_name="${req.body.last_name}", date_updated=now() where user_id = "${req.body.user_id}"`;
+
+    connection.query(query, (err, rows) =>{
+        if(err){
+            console.log('User Put Query '+ err);
+
+            res.writeHead(404, {'Content-Type':'application/json'});
+            res.end('{"success": false}'); 
+
+        } else {
+            
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end('{"success": true}'); 
+
+        }
+    });
+});
+
+router.delete('/:id', (req, res) =>{
+    const query = `delete from user where user_id="${req.params.id}"`;
+
+    connection.query(query, (err, rows) =>{
+        if(err){
+            console.log('User Delete Query '+ err);
+
+            res.writeHead(404, {'Content-Type':'application/json'});
+            res.end('{"success": false}'); 
+
+        } else {
+            
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end('{"success": true}'); 
+
+        }
+    });
 });
 
 module.exports = router;

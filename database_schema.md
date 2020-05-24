@@ -1,4 +1,4 @@
-# capsule_time database schema.md
+# capsule_time database schema
 
 - user
 
@@ -12,7 +12,12 @@ create table `user` (
     last_name varchar(15) NOT NULL,
     date_created TIMESTAMP DEFAULT now() NOT NULL,
     date_updated TIMESTAMP DEFAULT now() NOT NULL,
-    primary key(id, user_id)
+    unique key(id),
+    primary key(user_id)
+);
+
+create table `follower`(
+
 );
 
 create table `capsule`(

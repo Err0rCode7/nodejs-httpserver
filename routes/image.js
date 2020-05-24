@@ -57,7 +57,7 @@ router.get('/capsule-id/:capsuleId', (req, res) => {
     /* sql select imageId with capsule Id */
 
     res.writeHead(200, { 'Content-Type' : 'application/json' });
-    res.end('{"Success": true}');
+    res.end('{"success": true}');
 
 });
 
@@ -104,7 +104,7 @@ router.get('/:imageid', (req, res, next) => {
     });
 });
 
-// post image ( upload image )
+// post image ( upload image-form data)
 
 router.post('/', upload.single("imgFile"), (req, res) => {
 
@@ -126,7 +126,7 @@ router.post('/', upload.single("imgFile"), (req, res) => {
     });
     
     res.writeHead(200, {'Content-Type':'application/json'});
-    res.end({"Success": true});
+    res.end({"success": true});
 
 });
 router.put('/', (req, res) =>{
@@ -140,7 +140,7 @@ router.delete('/:id', (req, res) =>{
 
     /* image delete query */
     res.writeHead(200, {'Content-Type':'application/json'});
-    res.end('{"Success": true}');
+    res.end('{"success": true}');
 });
 
 /* Post example
