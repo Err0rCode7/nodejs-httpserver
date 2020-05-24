@@ -134,9 +134,11 @@ router.put('/', (req, res) =>{
     res.end('404 Page Not Found');
 });
 router.delete('/:id', (req, res) =>{
-    /* image delete query
 
-    */
+
+    /* image delete query */
+
+    /* image delete query */
     res.writeHead(200, {'Content-Type':'application/json'});
     res.end('{"Success": true}');
 });

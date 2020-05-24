@@ -5,27 +5,29 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 const multer = require('multer');
+const mysql = require('mysql');
+const config = require('./config/config.js');
 
 // Router
 const imageRouter = require('./routes/image.js');
 const videoRouter = require('./routes/video.js');
+const userRouter = require('./routes/user.js');
 
+// express
 const app = express();
 
+// Mysql
+
 // cors : cross-origin http enable
-const corsOptions = {
-    origin: 'http://localhost:7070',
-    credentials: true,
-};
-app.use(cors(corsOptions));
+app.use(cors(config.cors()));
 
 // bodyParser ( http - body)
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : true}));
 
-
 app.use('/images', imageRouter);
 app.use('/videos', videoRouter);
+app.use('/users', userRouter);
 
 /* 
 // 라우터 get 방식 예시
@@ -58,6 +60,6 @@ server.listen(8080, () => {
 });
 */
 
-app.listen(7070, () => {
+app.listen(config.port().port, () => {
     console.log('express server is running');
 });
