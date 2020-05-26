@@ -12,6 +12,8 @@ create table `user` (
     last_name varchar(15) NOT NULL,
     date_created TIMESTAMP DEFAULT now() NOT NULL,
     date_updated TIMESTAMP DEFAULT now() NOT NULL,
+   +follower INT,
+   +follow INT, 
     unique key(id),
     primary key(user_id)
 );
@@ -55,15 +57,17 @@ create table `content`(
 
 ```
 create table `follower`(
-
+    id, pk
+    user_id, fk
+    follow_id, fk
 );
 ```
 
-
-
 ```
-create table `capsule_binary`(
-
+create table `like`(
+    id, pk
+    user_id, fk
+    capsule_id, fk
 );
 ```
 

@@ -11,8 +11,12 @@ Develope http-streaming-server
     - position rest api
     - tag
 - user rest api
-    - follwer
-    - follow
+    - +follwer
+    - +follow
+
+- like
+
+- followers
 
 - anything...
 
@@ -34,6 +38,7 @@ Develope http-streaming-server
     - Post/ './users/auth/'     authorization(login) user
 
 - contents ( image or video )
+
     - Get/ './contents/:contentId'    content 
 
     - Get/ 'contents/capsule-id/:capsuleId'     contentID 
