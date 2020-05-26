@@ -16,6 +16,7 @@ const userRouter = require('./routes/user.js');
 // express
 const app = express();
 
+app.use(express.urlencoded({ extended: true}));
 // Mysql
 
 // cors : cross-origin http enable
@@ -24,6 +25,7 @@ app.use(cors(config.cors()));
 // bodyParser ( http - body)
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : true}));
+
 
 app.use('/images', imageRouter);
 app.use('/videos', videoRouter);
@@ -60,6 +62,6 @@ server.listen(8080, () => {
 });
 */
 
-app.listen(config.port().port, () => {
+app.listen(config.url().port, () => {
     console.log('express server is running');
 });

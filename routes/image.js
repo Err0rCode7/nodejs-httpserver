@@ -4,6 +4,7 @@ const mime = require('mime');
 const queryString = require('querystring');
 const multer = require('multer');
 const path = require('path');
+const config = require('../config/config')
 
 const router = express.Router();
 
@@ -27,7 +28,8 @@ const storage = multer.diskStorage({
         callback(null, 'public/images/');      
     },
 
-    limits: {
+    limits: (res ,req) => {
+        //if path.extname
         fileSize: 5 * 1024 * 1024 // limit: 5MB
     },
     // Stored fileName
@@ -104,35 +106,54 @@ router.get('/:imageid', (req, res, next) => {
     });
 });
 
-// post image ( upload image-form data)
-
-router.post('/', upload.single("imgFile"), (req, res) => {
-
-    console.log(req.imgFile);
-    console.log(req.body.capsuleId);
-    const imageName = req.imgFile.filename;
-    const capsuleId = req.body.capsuleId;
-    const imagePath = req.imgFile.path;
-    const extension = path.extname(req.imgFile.originalname);
-    const size = req.imgFile.size;
-    const imageNumber = req.body.imageNumber;
-    console.log({
-        imageName,
-        capsuleId,
-        imagePath,
-        extension,
-        size,
-        imageNumber
-    });
+// post image ( upload image-form data )
+//      multer 는 헤더에 content-type:x-www-form-urlencoded 를 사용하지 않고 multipart/form-data를 사용한다.
+router.post('/', upload.single("file"), (req, res) => {
     
-    res.writeHead(200, {'Content-Type':'application/json'});
-    res.end({"success": true});
+    try{
+        //console.log(req.file);
+        //console.log(req.body.capsule_id);
+
+        const content_name = req.file.filename;
+        const capsule_id = req.body.capsule_id;
+        //const url = req.file.path;
+        const uri = config.url().ip + ":" + config.url().port + "/images/" + content_name;
+        const extension = path.extname(req.file.originalname);
+        const size = req.file.size;
+        const id = req.body.id;
+        
+        //console.log(`${id}, ${content_name}, ${capsule_id}, ${path}, ${uri}, ${extension}, ${size}`);
+        
+        
+        const log = {
+            id,
+            content_name,
+            capsule_id,
+            uri,
+            extension,
+            size
+        };
+        
+        console.log(log);
+        
+        
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": true}');
+
+    } catch (error) {
+        console.log(error);
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    }
+    
 
 });
+
 router.put('/', (req, res) =>{
     res.writeHead(404, {'Content-Type':'text/html'});
     res.end('404 Page Not Found');
 });
+
 router.delete('/:id', (req, res) =>{
 
 
