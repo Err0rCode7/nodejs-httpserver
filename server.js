@@ -9,9 +9,10 @@ const mysql = require('mysql');
 const config = require('./config/config.js');
 
 // Router
-const imageRouter = require('./routes/image.js');
-const videoRouter = require('./routes/video.js');
+const contentRouter = require('./routes/content.js');
 const userRouter = require('./routes/user.js');
+//const videoRouter = require('./routes/video.js');
+
 
 // express
 const app = express();
@@ -27,9 +28,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : true}));
 
 
-app.use('/images', imageRouter);
-app.use('/videos', videoRouter);
+app.use('/contents', contentRouter);
 app.use('/users', userRouter);
+//app.use('/videos', videoRouter);
+
 
 /* 
 // 라우터 get 방식 예시

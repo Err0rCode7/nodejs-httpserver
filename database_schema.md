@@ -25,12 +25,13 @@ create table `user` (
 create table `capsule`(
     capsule_id int NOT NULL AUTO_INCREMENT,
     user_id int NOT NULL,
-    title varchar(100) NOT NULL,
+    title varchar(100),
     likes INT,
     views INT,
     text varchar(200),
     date_created TIMESTAMP DEFAULT now() NOT NULL,
     date_viewed TIMESTAMP DEFAULT now() NOT NULL,
+    status_temp bool NOT NULL,
     primary key(capsule_id),
     foreign key (user_id) references user (user_id)
 );
@@ -84,7 +85,11 @@ create table `tag`(
 );
 ```
 
+```
+create table ``(
 
+);
+```
 
 ## Procedure
 
