@@ -11,8 +11,9 @@ const cors_option = {
 
 };
 
-const port = {
-    port : 
+const server_url = {
+    ip : "",
+    port :
 };
 
 module.exports = {
