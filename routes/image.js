@@ -1,10 +1,11 @@
 const express = require('express');
 const fs = require('fs');
 const mime = require('mime');
-const queryString = require('querystring');
+//const queryString = require('querystring');
 const multer = require('multer');
 const path = require('path');
 const config = require('../config/config')
+
 
 const router = express.Router();
 
@@ -19,18 +20,50 @@ const imageType = {
     size: int // file size
     imageNumber: int // number for order
 }
+const content = {
+    id, // number for order
+    content_name, // data.now().extension
+    capsule_id, // select key 
+    uri, // get image uri
+    extension, // file extension
+    size // file size
+};
 */
 
 // file upload object
+
+function isImg(extension, callback){
+    if ( extension == ".png" || extension == ".bmp" || extension == ".jpg" ||
+    extension == ".jpeg" || extension == ".webp" || extension == ".gif" ) {
+        return callback(true);
+    } else {
+        return callback(false);
+    }
+};
+
 const storage = multer.diskStorage({
     // Path 콜백
     destination : (req, file, callback) => {
-        callback(null, 'public/images/');      
+            
+        if ( isImg((path.extname(file.originalname)), result => {
+            return result
+        })) {
+            callback(null, 'public/images/');   
+        } else {
+            callback(null, 'public/videos/');
+        }
+           
     },
 
     limits: (res ,req) => {
-        //if path.extname
-        fileSize: 5 * 1024 * 1024 // limit: 5MB
+        // image-size limit
+        if ( isImg((path.extname(file.originalname)), result => {
+            return result
+        })) {
+            fileSize: 5 * 1024 * 1024 // limit: 5MB
+        } else { // video-size limit
+            fileSize: 20 * 1024 * 1024 // limit: 20MB
+        }
     },
     // Stored fileName
     filename : (req, file, callback) => {
@@ -46,17 +79,17 @@ const upload = multer({
     storage: storage
 });
 
-// Get imageId
+// Get contentId
 
 router.get('/capsule-id/:capsuleId', (req, res) => {
     console.log(req.params.capsuleId);
     
     const capsuleId = req.params.capsuleId;
 
-    /* sql select imageId with capsule Id */
+    /* sql select contentId with capsule Id */
     
 
-    /* sql select imageId with capsule Id */
+    /* sql select contentId with capsule Id */
 
     res.writeHead(200, { 'Content-Type' : 'application/json' });
     res.end('{"success": true}');
@@ -64,68 +97,79 @@ router.get('/capsule-id/:capsuleId', (req, res) => {
 });
 
 
-// Get image
+// Get contents
 
-router.get('/:imageid', (req, res, next) => {
-    const imgId = req.params.imageid;
-    console.log(req.params.imageid);
+router.get('/:contentid', (req, res, next) => {
 
-    const imgPath = './public/images/'+imgId;
-    const imgMime = mime.getType(imgPath);
-    console.log('imgPath: '+imgPath);
-    console.log('imgMime: '+imgMime);
-    /*
-    // Send readFile 동기식
-    fs.readFile(imgPath, (error, data) => {
-        if (error){
-            console.log('Page not found 404 : ' + error);
-            res.writeHead(500, {'Content-Type':'text/html'});
-            res.end('500 Internal Server ' +error);
-        }else{
-            res.writeHead(200, {'Content-Type':imgMime});
-            res.end(data);
-        }            
+    try{
+        const contentId = req.params.contentid;
+        let contentPath = "";
+        console.log((path.extname(contentId)));
+        if ( isImg((path.extname(contentId)), result => {
+            return result
+        })) {
+            contentPath = './public/images/'+contentId;    
+        } else {
+            contentPath = './public/videos/'+contentId;
+        }
+        const contentMime = mime.getType(contentPath);
+        console.log('contentPath: '+ contentPath);
+        console.log('contentMime: '+ contentMime);
+
+        /*
+        // Send readFile 동기식
+        fs.readFile(imgPath, (error, data) => {
+            if (error){
+                console.log('Page not found 404 : ' + error);
+                res.writeHead(500, {'Content-Type':'text/html'});
+                res.end('500 Internal Server ' +error);
+            }else{
+                res.writeHead(200, {'Content-Type':imgMime});
+                res.end(data);
+            }            
+            
+        });
+        */
+
+        const stream = fs.createReadStream(contentPath);
+        let count = 0;
+        stream.on('data', (data) => {
+            
+            console.log('content data count= '+ (count = count+1));
+            res.write(data);
+        });
         
-    });
-    */
-    const stream = fs.createReadStream(imgPath);
-    let count = 0;
-    stream.on('data', (data) => {
-        
-        console.log('image data count= '+ (count = count+1));
-        res.write(data);
-    });
-    
-    stream.on('end', () => { 
-        console.log('end streaming');
-        res.end();
-    })
-    stream.on('error', (error) => {
+        stream.on('end', () => { 
+            console.log('end streaming')
+            res.end();
+        })
+        stream.on('error', (error) => {
+            res.writeHead(500, {'Content-Type':'application/json'});
+            res.end('{"success": false, "error": "internal error"}');
+        });
+
+    } catch(error) {
         console.log(error);
-        res.end('500 Internal Server '+error);
-    });
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    }
 });
 
-// post image ( upload image-form data )
+// post content ( upload image-form data )
 //      multer 는 헤더에 content-type:x-www-form-urlencoded 를 사용하지 않고 multipart/form-data를 사용한다.
 router.post('/', upload.single("file"), (req, res) => {
     
     try{
-        //console.log(req.file);
+        console.log(req.file);
         //console.log(req.body.capsule_id);
 
         const content_name = req.file.filename;
         const capsule_id = req.body.capsule_id;
-        //const url = req.file.path;
-        const uri = config.url().ip + ":" + config.url().port + "/images/" + content_name;
+        const uri = config.url().ip + ":" + config.url().port + "contents" + content_name;
         const extension = path.extname(req.file.originalname);
         const size = req.file.size;
         const id = req.body.id;
-        
-        //console.log(`${id}, ${content_name}, ${capsule_id}, ${path}, ${uri}, ${extension}, ${size}`);
-        
-        
-        const log = {
+        const content = {
             id,
             content_name,
             capsule_id,
@@ -133,9 +177,7 @@ router.post('/', upload.single("file"), (req, res) => {
             extension,
             size
         };
-        
-        console.log(log);
-        
+        console.log(content);
         
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": true}');
@@ -145,7 +187,6 @@ router.post('/', upload.single("file"), (req, res) => {
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
     }
-    
 
 });
 
@@ -155,17 +196,17 @@ router.put('/', (req, res) =>{
 });
 
 router.delete('/:id', (req, res) =>{
-
-
     /* image delete query */
-
+    // -> capsule-delete 에서 실행 
     /* image delete query */
-    res.writeHead(200, {'Content-Type':'application/json'});
-    res.end('{"success": true}');
+    res.writeHead(404, {'Content-Type':'text/html'});
+    res.end('404 Page Not Found');
 });
 
-/* Post example
+module.exports = router;
 
+/* Post example
+//const queryString = require('querystring');
 router.post('/', (req,res) => {
     let json = ''
     
@@ -187,4 +228,3 @@ router.post('/', (req,res) => {
 
 */
 
-module.exports = router;
