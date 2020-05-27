@@ -165,7 +165,7 @@ router.post('/', upload.single("file"), (req, res) => {
 
         const content_name = req.file.filename;
         const capsule_id = req.body.capsule_id;
-        const uri = config.url().ip + ":" + config.url().port + "contents" + content_name;
+        const uri = config.url().ip + ":" + config.url().port + "/contents/" + content_name;
         const extension = path.extname(req.file.originalname);
         const size = req.file.size;
         const id = req.body.id;
