@@ -113,7 +113,7 @@ router.put('/', (req, res) => {
     
     const query = `update user set password=password("${req.body.password}"), nick_name="${req.body.nick_name}", first_name="${req.body.first_name}", \
     last_name="${req.body.last_name}", date_updated=now() where user_id = "${req.body.user_id}"`;
-    console.log(query);
+    
     connection.query(query, (err, rows) =>{
         if(err){
             
@@ -122,11 +122,12 @@ router.put('/', (req, res) => {
             res.writeHead(200, {'Content-Type':'application/json'});
             res.end('{"success": false}'); 
 
-        } else {
-            console.log(rows);
+        } else if (rows.affectedRows >= '1') {
             res.writeHead(200, {'Content-Type':'application/json'});
             res.end('{"success": true}'); 
-
+        } else {
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end('{"success": false}'); 
         }
     });
 });

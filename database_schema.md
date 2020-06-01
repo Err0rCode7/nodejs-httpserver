@@ -56,7 +56,7 @@ create table `capsule`(
 ```
 create table `content`(
     content_id int UNSIGNED NOT NULL AUTO_INCREMENT,
-    content_name varchar(25) NOT NULL unique,
+    +content_name varchar(25) NOT NULL unique,
     capsule_id int UNSIGNED NOT NULL,
     url varchar(100) NOT NULL,
     extension varchar(10) NOT NULL,

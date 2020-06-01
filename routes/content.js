@@ -88,11 +88,6 @@ router.get('/capsule-id/:capsuleId', (req, res) => {
     const query = `select * from content where capsule_id = ${capsuleId};`;
     /* sql select contentId with capsule Id */
     try {
-
-        if (capsuleId == undefined) {
-            console.log('Undefined capuId')
-            throw error;
-        }
         
         connection.query(query, (err, rows, field) =>{
             if (err) {
@@ -236,6 +231,26 @@ router.delete('/:contentName', (req, res) =>{
     const content_name = req.params.contentName;
     const query = `delete from content where content_name = '${content_name}';`;
     try {
+  
+            
+        let filePath = '';
+        if (isImg(path.extension(content_name), result =>{
+            return result;
+        })) {
+            filePath = path.join('public/images/', content_name);
+        } else {
+            filePath = path.join('public/videos/', content_name);
+        }
+
+        fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (err) console.log('Cant delete files');
+        })
+
+        fs.unlink(filePath, (err) => err ?
+        console.log(err) : console.log(`${filePath} is deleted !`));
+            
+
+
         connection.query(query, (err,rows,field) =>{
             if (err) {
                 console.log("Delete Content Query Error : "+err);
@@ -247,6 +262,9 @@ router.delete('/:contentName', (req, res) =>{
                 }
             }
         });
+
+        
+
     } catch {
 
         res.writeHead(200, {'Content-Type':'application/json'});

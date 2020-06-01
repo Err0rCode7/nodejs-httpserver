@@ -11,6 +11,7 @@ const config = require('./config/config.js');
 // Router
 const contentRouter = require('./routes/content.js');
 const userRouter = require('./routes/user.js');
+const capsuleRouter = require('./routes/capsule.js');
 //const videoRouter = require('./routes/video.js');
 
 
@@ -30,6 +31,7 @@ app.use(bodyParser.urlencoded({extended : true}));
 
 app.use('/contents', contentRouter);
 app.use('/users', userRouter);
+app.use('/capsules', capsuleRouter);
 //app.use('/videos', videoRouter);
 
 
