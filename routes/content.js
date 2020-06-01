@@ -5,21 +5,21 @@ const mime = require('mime');
 const multer = require('multer');
 const path = require('path');
 const config = require('../config/config')
+const mysql = require('mysql');
 
 
 const router = express.Router();
 
-// ImageType ( Post )
+const connection = mysql.createConnection(config.db());
+connection.connect( (err) => {
+    if(err) {
+        console.log('content router : ' + err);
+        return;
+    }
+});
 
+// ImageType ( Post )
 /*
-const imageType = {
-    imageName: int, //data.now().extension
-    capsuleId: int, // select key 
-    imagePath: String, // image storage
-    extension: String, // file extension
-    size: int // file size
-    imageNumber: int // number for order
-}
 const content = {
     id, // number for order
     content_name, // data.now().extension
@@ -85,14 +85,33 @@ router.get('/capsule-id/:capsuleId', (req, res) => {
     console.log(req.params.capsuleId);
     
     const capsuleId = req.params.capsuleId;
+    const query = `select * from content where capsule_id = ${capsuleId};`;
+    /* sql select contentId with capsule Id */
+    try {
+
+        if (capsuleId == undefined) {
+            console.log('Undefined capuId')
+            throw error;
+        }
+        
+        connection.query(query, (err, rows, field) =>{
+            if (err) {
+                console.log('Content Capsule-id Query Error'+err);
+                throw error;
+            }
+        });
+        res.writeHead(200, { 'Content-Type' : 'application/json' });
+        res.end('{"success": true}');
+
+    } catch(error) {
+        console.log(error);
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    }
 
     /* sql select contentId with capsule Id */
-    
 
-    /* sql select contentId with capsule Id */
 
-    res.writeHead(200, { 'Content-Type' : 'application/json' });
-    res.end('{"success": true}');
 
 });
 
@@ -103,6 +122,10 @@ router.get('/:contentid', (req, res, next) => {
 
     try{
         const contentId = req.params.contentid;
+        if (contentId == undefined) {
+            console.log('Undefined contentId')
+            throw error;
+        }
         let contentPath = "";
         console.log((path.extname(contentId)));
         if ( isImg((path.extname(contentId)), result => {
@@ -155,30 +178,42 @@ router.get('/:contentid', (req, res, next) => {
     }
 });
 
-// post content ( upload image-form data )
+// post contents ( upload image-form data )
 //      multer 는 헤더에 content-type:x-www-form-urlencoded 를 사용하지 않고 multipart/form-data를 사용한다.
-router.post('/', upload.single("file"), (req, res) => {
+router.post('/', upload.array("file"), (req, res) => {
     
     try{
-        console.log(req.file);
+        //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
+        if(req.body.capsule_id == undefined) {
+            console.log(" Post Contents - Capsule_id not exist ");
+            throw error;
+        }
+        req.files.forEach( file =>{
+            const content_name = file.filename;
+            const capsule_id = req.body.capsule_id;
+            const url = config.url().ip + ":" + config.url().port + "/contents/" + content_name;
+            const extension = path.extname(file.originalname);
+            const size = file.size;
+            //const id = req.body.id;
+            const content = {
+                //id,
+                content_name,
+                capsule_id,
+                url,
+                extension,
+                size
+            };
+            const query = `insert into content (content_name, capsule_id, url, extension, size) value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}');`
+            connection.query(query, (err,rows) =>{
+                if (err) {
+                    console.log("Content Post Query Error :" +err);
+                    throw err;
+                }
+            });
+            console.log(content);
+        });
 
-        const content_name = req.file.filename;
-        const capsule_id = req.body.capsule_id;
-        const uri = config.url().ip + ":" + config.url().port + "/contents/" + content_name;
-        const extension = path.extname(req.file.originalname);
-        const size = req.file.size;
-        const id = req.body.id;
-        const content = {
-            id,
-            content_name,
-            capsule_id,
-            uri,
-            extension,
-            size
-        };
-        console.log(content);
-        
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": true}');
 
@@ -195,12 +230,29 @@ router.put('/', (req, res) =>{
     res.end('404 Page Not Found');
 });
 
-router.delete('/:id', (req, res) =>{
-    /* image delete query */
-    // -> capsule-delete 에서 실행 
-    /* image delete query */
-    res.writeHead(404, {'Content-Type':'text/html'});
-    res.end('404 Page Not Found');
+router.delete('/:contentName', (req, res) =>{
+
+    
+    const content_name = req.params.contentName;
+    const query = `delete from content where content_name = '${content_name}';`;
+    try {
+        connection.query(query, (err,rows,field) =>{
+            if (err) {
+                console.log("Delete Content Query Error : "+err);
+                throw error;
+            } else {
+                if(rows.affectedRows >= '1' ) {
+                    res.writeHead(200, {'Content-Type':'application/json'});
+                    res.end('{"success": true}');
+                }
+            }
+        });
+    } catch {
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    }
+
 });
 
 module.exports = router;

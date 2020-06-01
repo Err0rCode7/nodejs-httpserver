@@ -36,13 +36,16 @@ router.get('/:id', (req, res) => {
     const query = `select user_id, nick_name, first_name, last_name, date_created, date_updated from user where user_id = "${req.params.id}"`;
     connection.query(query, (err, rows) => {
             if(err){
+
                 console.log('User Get_user Query '+ err);
                 res.writeHead(404, {'Content-Type':'application/json'});
                 res.end('{"success": false}'); 
+
             } else {
                 //rows is array type containing json
                 //rows[0]["password"] = null;
                 const resJson = {}
+                
                 if(!rows[0])
                 {
                     rows.unshift({"success":false});
@@ -60,7 +63,7 @@ router.get('/:id', (req, res) => {
 //register
 router.post('/', (req, res) => {
     
-    console.log(req.body);
+    //console.log(req.body);
     const query = `insert into user (user_id, password, nick_name, first_name, last_name, date_created, date_updated) \
     values("${req.body.user_id}", password("${req.body.password}"), "${req.body.nick_name}", "${req.body.first_name}", "${req.body.last_name}", now(), now())`;
     
@@ -91,7 +94,7 @@ router.post('/auth', (req, res) =>{
         if(err){
             console.log('User Post Login Query '+ err);
 
-            res.writeHead(404, {'Content-Type':'application/json'});
+            res.writeHead(200, {'Content-Type':'application/json'});
             res.end('{"success": errMsg}'); 
 
         } else {
@@ -110,16 +113,17 @@ router.put('/', (req, res) => {
     
     const query = `update user set password=password("${req.body.password}"), nick_name="${req.body.nick_name}", first_name="${req.body.first_name}", \
     last_name="${req.body.last_name}", date_updated=now() where user_id = "${req.body.user_id}"`;
-
+    console.log(query);
     connection.query(query, (err, rows) =>{
         if(err){
+            
             console.log('User Put Query '+ err);
 
-            res.writeHead(404, {'Content-Type':'application/json'});
+            res.writeHead(200, {'Content-Type':'application/json'});
             res.end('{"success": false}'); 
 
         } else {
-            
+            console.log(rows);
             res.writeHead(200, {'Content-Type':'application/json'});
             res.end('{"success": true}'); 
 
@@ -130,19 +134,20 @@ router.put('/', (req, res) => {
 router.delete('/:id', (req, res) =>{
     const query = `delete from user where user_id="${req.params.id}"`;
 
-    connection.query(query, (err, rows) =>{
+    connection.query(query, (err, rows, field) =>{
         if(err){
             console.log('User Delete Query '+ err);
-
-            res.writeHead(404, {'Content-Type':'application/json'});
-            res.end('{"success": false}'); 
-
         } else {
-            
-            res.writeHead(200, {'Content-Type':'application/json'});
-            res.end('{"success": true}'); 
-
+            if(rows.affectedRows >= '1' )
+            {
+                console.log("true");
+                res.writeHead(200, {'Content-Type':'application/json'});
+                res.end('{"success": true}'); 
+            }
         }
+
+    res.writeHead(200, {'Content-Type':'application/json'});
+    res.end('{"success": false}'); 
     });
 });
 
