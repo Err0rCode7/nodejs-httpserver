@@ -4,55 +4,73 @@
 
 ```
 create table `user` (
-    id int NOT NULL AUTO_INCREMENT,
-    user_id varchar(15) NOT NULL,
+    id int UNSIGNED NOT NULL AUTO_INCREMENT unique,
+    user_id varchar(15) NOT NULL unique,
     password varchar(100) NOT NULL,
     nick_name varchar(15) NOT NULL,
     first_name varchar(10) NOT NULL,
     last_name varchar(15) NOT NULL,
     date_created TIMESTAMP DEFAULT now() NOT NULL,
     date_updated TIMESTAMP DEFAULT now() NOT NULL,
-   +follower INT,
-   +follow INT, 
-    unique key(id),
-    primary key(user_id)
+    follower INT UNSIGNED DEFAULT 0 NOT NULL,
+    follow INT UNSIGNED DEFAULT 0 NOT NULL, 
+    primary key(id, user_id)
 );
 
+// unique key(id)
 // foreign key (current_row) references refer_table (refer_row)
+
+// user test
+// insert into user (user_id, password, nick_name, first_name, last_name) values('id1', password('123456'), 'nick', 'first', 'last');
 ```
 
 - capsule
 
 ```
 create table `capsule`(
-    capsule_id int NOT NULL AUTO_INCREMENT,
-    user_id int NOT NULL,
+    capsule_id int UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id varchar(15) NOT NULL,
     title varchar(100),
-    likes INT,
-    views INT,
+    likes INT UNSIGNED DEFAULT 0 NOT NULL,
+    views INT UNSIGNED DEFAULT 0 NOT NULL,
     text varchar(200),
     date_created TIMESTAMP DEFAULT now() NOT NULL,
     date_viewed TIMESTAMP DEFAULT now() NOT NULL,
-    status_temp bool NOT NULL,
+    status_temp boolean DEFAULT true NOT NULL,
+    location point NOT NULL,
     primary key(capsule_id),
-    foreign key (user_id) references user (user_id)
-);
+    foreign key (user_id) references user (user_id) on delete cascade
+) ENGINE=InnoDB;
+
+// insert capsule
+// insert into capsule (user_id, title, likes, views, text, date_created, date_viewed, status_temp) values('id1', 'Hello World', '');
+// insert into capsule (user_id, status_temp, location) values('id1', true, point(126.955869, 37.546037));
+
+// select position 
+// select x(location) as 'lng', y(location) as 'lat' from capsule;
+
 ```
 
 - content
 
 ```
 create table `content`(
-    id int NOT NULL AUTO_INCREMENT,
-    content_id int NOT NULL AUTO_INCREMENT,
-    capsule_id int NOT NULL,
+    content_id int UNSIGNED NOT NULL AUTO_INCREMENT,
+    content_name varchar(25) NOT NULL unique,
+    capsule_id int UNSIGNED NOT NULL,
     url varchar(100) NOT NULL,
     extension varchar(10) NOT NULL,
-    size int NOT NULL,
-    unique key(id),
+    size int UNSIGNED NOT NULL,
     primary key(content_id),
-    foreign key (capsule_id) references capsule (capsule_id)
+    foreign key (capsule_id) references capsule (capsule_id) on delete cascade
 );
+
+// insert content
+// insert into content (content_name, capsule_id, url, extension, size) values('1591002276119.mp4', 1, '118.44.168.218:7070/contents/1591002451891.mp4', '.mp4', 8799495);
+// insert into content (content_name, capsule_id, url, extension, size) values('1591003376304.mp4', 2, '118.44.168.218:7070/contents/1591003376304.mp4', '.mp4', 22567559);
+// insert into content (content_name, capsule_id, url, extension, size) values('1591003456370.mp4', 3, '118.44.168.218:7070/contents/1591003456370.mp4', '.mp4', 5143816);
+
+
 ```
 
 ```
@@ -68,12 +86,6 @@ create table `like`(
     id, pk
     user_id, fk
     capsule_id, fk
-);
-```
-
-```
-create table `position`(
-
 );
 ```
 
