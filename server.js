@@ -5,7 +5,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 const multer = require('multer');
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
 const config = require('./config/config.js');
 
 // Router
