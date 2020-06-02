@@ -186,7 +186,7 @@ router.post('/', upload.array("file"), async (req, res) => {
 
             const content_name = file.filename;
             const capsule_id = req.body.capsule_id;
-            const url = config.url().ip + ":" + config.url().port + "/contents/" + content_name;
+            const url = "http://" + config.url().ip + ":" + config.url().port + "/contents/" + content_name;
             const extension = path.extname(file.originalname);
             const size = file.size;
             //const id = req.body.id;
@@ -198,7 +198,9 @@ router.post('/', upload.array("file"), async (req, res) => {
                 extension,
                 size
             };
-            const query = `insert into content (content_name, capsule_id, url, extension, size) value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}');`
+            const query = `insert into content \
+                    (content_name, capsule_id, url, extension, size) \
+            value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}');`
             querys = querys + query;
         });
 

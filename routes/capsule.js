@@ -140,17 +140,77 @@ router.get('/user', async (req, res)=>{
                         from capsule as cap \
                         JOIN content as ct \
                         ON cap.capsule_id = ct.capsule_id AND \
-                        cap.user_id = '${user_id}';`
+                        cap.user_id = '${user_id}' \
+                        ORDER BY capsule_id DESC;`
     try {
         
         const result = await conn.query(query);
         let rows = result[0];
         if (rows.length == 0)
             throw "Exception : Cant Find Capsule with this user_id";
+        let index = 0;
+        let i = 0;
+        let content = [];
+        let capsules = [];
+        let { capsule_id, user_id, title, likes, views, date_created, date_viewed, status_temp, lat, lng } = rows[0];
+        capsules.push({
+            capsule_id,
+            user_id,
+            title,
+            likes,
+            views,
+            date_created,
+            date_viewed,
+            status_temp,
+            lat,
+            lng,
+            content:null
+        })
+        rows.forEach( item => {
+            if (item != undefined) {
+                if (item.capsule_id == capsules[index].capsule_id ) {
+                    content.push({
+                        content_id: item.content_id,
+                        url: item.url
+                    });
+                    if (rows.length - 1  == i) {
+                        capsules[index].content = content;
+                    }
+                } else {
+                    capsules[index].content = content;
+                    index = index + 1;
+                    content = [];
 
-        rows.unshift({"success":true});
+                    capsules[index] = {
+                        capsule_id: item.capsule_id,
+                        user_id: item.user_id,
+                        title: item.title,
+                        likes: item.likes,
+                        views: item.views,
+                        date_created: item.date_created,
+                        date_viewed: item.date_viewed,
+                        status_temp: item.status_temp,
+                        lat: item.lat,
+                        lng: item.lng,
+                        content:null
+                    }
+
+                    content.push({
+                        content_id: item.content_id,
+                        url: item.url
+                    });
+
+                    if (rows.length - 1  == i) {
+                        capsules[index].content = content;
+                    }
+                }
+            }
+            i = i + 1;
+        });
+
+        capsules.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(rows));
+        res.end(JSON.stringify(capsules));
     } catch (e) {
         console.log(e);
 
@@ -188,9 +248,33 @@ router.get('/:capsuleId', async (req, res) => {
         const result = await conn.query(query);
         console.log(result[0]);
         let rows = result[0];
-        rows.unshift({"success":true});
+        if (rows.length == 0)
+            throw "Exception : Cant Find Capsule with capsule_id";
+        
+        const {capsule_id, user_id, title, likes, views, date_created, date_viewed, status_temp, lat, lng} = rows[0];
+        let content = [];
+        rows.forEach( item => {
+            content.push({content_id: item.content_id, url: item.url});
+        });
+
+        const resJson = [{
+            capsule_id,
+            user_id,
+            title,
+            likes,
+            views,
+            date_created,
+            date_viewed,
+            status_temp,
+            lat,
+            lng,
+            content: content
+        }];
+
+        //console.log(temp);
+        resJson.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(rows));
+        res.end(JSON.stringify(resJson));
 
     } catch(e) {
         console.log(e);
@@ -283,7 +367,7 @@ router.put('/', upload.array("file"), async (req, res) => {
        await req.files.forEach( file =>{
 
         const content_name = file.filename;
-        const url = config.url().ip + ":" + config.url().port + "/contents/" + content_name;
+        const url = "http://"+ config.url().ip + ":" + config.url().port + "/contents/" + content_name;
         const extension = path.extname(file.originalname);
         const size = file.size;
         
