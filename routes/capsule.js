@@ -94,13 +94,13 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/location', async (req, res) => {
-    
-    const query = `select *, U_ST_DISTANCE_SPHERE(POINT(${req.query.lng}, ${req.query.lat}), location) as Dist \
+    const {lng, lat} = req.query;
+    const query = `select *, U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) as Dist \
                     from capsule \
-                    where U_ST_DISTANCE_SPHERE(POINT(${req.query.lng}, ${req.query.lat}), location) <= 5 \
+                    where U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) <= 50 \
                     order by Dist;`
     const conn = await pool.getConnection();
-
+    console.log(lng,lat);
     try {
 
         if (req.query.lng == undefined || req.query.lat == undefined)
@@ -108,6 +108,9 @@ router.get('/location', async (req, res) => {
 
         const result = await conn.query(query);
         let rows = result[0];
+        if (rows.length == 0){
+            throw "Exception : Cant Find Capsules";
+        }
         rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows));
@@ -120,7 +123,43 @@ router.get('/location', async (req, res) => {
         conn.release();
     }
 });
+router.get('/user', async (req, res)=>{
+    const { user_id } = req.query;
+    const conn = await pool.getConnection();
+    const query = `select cap.capsule_id, \
+                            user_id, \
+                            title, \
+                            likes, \
+                            views, \
+                            date_created, \
+                            date_viewed, \
+                            status_temp, \
+                            y(location) as lat, x(location) as lng, \
+                            content_id, \
+                            url \
+                        from capsule as cap \
+                        JOIN content as ct \
+                        ON cap.capsule_id = ct.capsule_id AND \
+                        cap.user_id = '${user_id}';`
+    try {
+        
+        const result = await conn.query(query);
+        let rows = result[0];
+        if (rows.length == 0)
+            throw "Exception : Cant Find Capsule with this user_id";
 
+        rows.unshift({"success":true});
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify(rows));
+    } catch (e) {
+        console.log(e);
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+});
 router.get('/:capsuleId', async (req, res) => { 
 
     const query = `select cap.capsule_id, \
@@ -134,10 +173,10 @@ router.get('/:capsuleId', async (req, res) => {
                                 y(location) as lat, x(location) as lng, \
                                 content_id, \
                                 url \
-                                from capsule as cap \
-                                JOIN content as ct \
-                                ON cap.capsule_id = ct.capsule_id AND \
-                                ct.capsule_id = ${req.params.capsuleId};`
+                            from capsule as cap \
+                            JOIN content as ct \
+                            ON cap.capsule_id = ct.capsule_id AND \
+                            ct.capsule_id = ${req.params.capsuleId};`
     
     const conn = await pool.getConnection();
 
@@ -175,7 +214,7 @@ router.post('/', async (req,res) => {
         }
         const query = `insert into capsule (user_id, status_temp, location) values('${req.body.user_id}',\
          true, point(${req.body.lng}, ${req.body.lat}));`
-
+        console.log(query);
         await conn.beginTransaction();
 
         const insResult = await conn.query(query);
@@ -225,7 +264,7 @@ router.put('/', upload.array("file"), async (req, res) => {
         let insertQuerys = "";
 
         if (req.body.text != undefined)
-            text = req.body.text;
+            text = '\'' + req.body.text + '\'';
         const updateQuery = `update capsule SET \
                                 title = '${title}', \
                                 status_temp = ${status_temp}, \
