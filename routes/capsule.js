@@ -78,8 +78,8 @@ router.get('/', async (req, res) => {
     const conn = await pool.getConnection();
 
     try {
-        const Result = await conn.query(query); 
-        let rows = Result[0];    
+        const result = await conn.query(query); 
+        let rows = result[0];    
         rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows));
@@ -106,8 +106,8 @@ router.get('/location', async (req, res) => {
         if (req.query.lng == undefined || req.query.lat == undefined)
             throw " Get-Query-Exception : need lng, lat ";
 
-        const Result = await conn.query(query);
-        let rows = Result[0];
+        const result = await conn.query(query);
+        let rows = result[0];
         rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows));
@@ -121,7 +121,7 @@ router.get('/location', async (req, res) => {
     }
 });
 
-router.get('/content/:capsuleId', async (req, res) => { 
+router.get('/:capsuleId', async (req, res) => { 
 
     const query = `select cap.capsule_id, \
                                 user_id, \
@@ -146,9 +146,9 @@ router.get('/content/:capsuleId', async (req, res) => {
         if (req.params.capsuleId == undefined)
             throw "Get-URL-Capsule Exception - need capsuleId"
 
-        const Result = await conn.query(query);
-        console.log(Result[0]);
-        let rows = Result[0];
+        const result = await conn.query(query);
+        console.log(result[0]);
+        let rows = result[0];
         rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows));
@@ -271,8 +271,10 @@ router.put('/', upload.array("file"), async (req, res) => {
         if (updResult[0].affectedRows == 0)
             throw {name: 'putCapsuleNotUpdateException', message: "Put Capsule-Not-Update Error"};
         
-        insResult.forEach( Result => {
-            if (Result.affectedRows)
+        insResult.forEach( result => {
+            if(result == undefined)
+                return;
+            if (result.affectedRows)
                 throw {name: 'putCapsuleNotInsertException', message: "Put Capsule-Not-Update Error"};
         })
         
@@ -338,8 +340,9 @@ router.put('/', upload.array("file"), async (req, res) => {
 
 });
 
-router.delete('/:capsuleId', (req,res) => {
+router.delete('/:capsuleId', async (req,res) => {
 
+    const conn = await pool.getConnection();
 
     try {
         const capsule_id = req.params.capsuleId;
@@ -347,35 +350,53 @@ router.delete('/:capsuleId', (req,res) => {
         selectQuery = `select content_name from content where capsule_id = ${capsule_id}; `;
         deleteQuery = `delete from capsule where capsule_id = ${capsule_id};`;
         
-        connection.query(selectQuery + deleteQuery, (err,rows) => {
+        await conn.beginTransaction();
+
+        const result = await conn.query(selectQuery + deleteQuery);
+
+        if (result[0][1].affectedRows == 0 )
+            throw {name: 'cantDeleteCapsuleException', message: "Cant Delete this Capsule : Exception"};
+
+        files = result[0][0];
+        files.forEach( file => {
+            let filePath = '';
+            if (isImg(path.extname(file.content_name), result =>{
+                return result;
+            })) {
+                filePath = path.join('public/images/', file.content_name);
+            } else {
+                filePath = path.join('public/videos/', file.content_name);
+            }
+
+            fs.access(filePath, fs.constants.F_OK, (err) => {
+                if (err) console.log('Cant delete files');
+            })
+
+            fs.unlink(filePath, (err) => err ?
+            console.log(err) : console.log(`${filePath} is deleted !`));
+        });
+        /*(err,rows) => {
             if (err)
                 console.log(err);
             else {
-                files = rows;
-                files.forEach( file => {
-            
-                    let filePath = '';
-                    if (isImg(file.extension, result =>{
-                        return result;
-                    })) {
-                        filePath = path.join('public/images/', file.filename);
-                    } else {
-                        filePath = path.join('public/videos/', file.filename);
-                    }
-        
-                    fs.access(filePath, fs.constants.F_OK, (err) => {
-                        if (err) console.log('Cant delete files');
-                    })
-        
-                    fs.unlink(filePath, (err) => err ?
-                    console.log(err) : console.log(`${filePath} is deleted !`));
+
                     
                 });
             }
         });
-        
+        */
+       await conn.commit(); 
+       res.writeHead(200, {'Content-Type':'application/json'});
+       res.end('{"success": true}');
     } catch (e) {
-        
+        await conn.rollback();
+        console.log(e);
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+
+    } finally {
+        conn.release();
     }
 });
 
