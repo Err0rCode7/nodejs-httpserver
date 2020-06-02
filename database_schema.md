@@ -109,6 +109,7 @@ create table ``(
 
 ## Procedure
 
+    - 여러 user 만드는 Procedure
         
 ```
 // delimiter $$  : 문장의 끝을 $$로 구분 설정
@@ -120,6 +121,7 @@ delimiter ;
 ```
 
 ## Function
+    - 위도, 경로 거리 계산 함수
 ```
 delimiter $$
 
@@ -127,7 +129,7 @@ CREATE
     FUNCTION `u_st_distance_sphere`(`pt1` POINT, `pt2` POINT)
     RETURNS DECIMAL(10,2)
     BEGIN
-	RETURN 6371000 * 2 * ASIN(SQRT(POWER(SIN((ST_Y(pt2) - ST_Y(pt1)) * PI()/180 / 2), 2) + COS(ST_Y(pt1) * PI()/180 ) * COS(ST_Y(pt2) * PI()/180) * POWER(SIN((ST_X(pt2) - ST_X(pt1)) * PI()/180 / 2), 2) ));
+	RETURN 6371 * 2 * ASIN(SQRT(POWER(SIN((ST_Y(pt2) - ST_Y(pt1)) * PI()/180 / 2), 2) + COS(ST_Y(pt1) * PI()/180 ) * COS(ST_Y(pt2) * PI()/180) * POWER(SIN((ST_X(pt2) - ST_X(pt1)) * PI()/180 / 2), 2) ));
     END$$
 
 delimiter ;
