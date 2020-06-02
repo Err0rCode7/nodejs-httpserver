@@ -5,18 +5,11 @@ const mime = require('mime');
 const multer = require('multer');
 const path = require('path');
 const config = require('../config/config')
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
 
 
 const router = express.Router();
-
-const connection = mysql.createConnection(config.db());
-connection.connect( (err) => {
-    if(err) {
-        console.log('capsule router : ' + err);
-        return;
-    }
-});
+const pool = mysql.createPool(config.db());
 
 
 
@@ -68,199 +61,234 @@ const upload = multer({
 });
 
 
-router.get('/', (req, res) => { 
-    const query = "select capsule_id, user_id, title, likes, views, date_created, date_viewed, status_temp,\
-    y(location) as lat, x(location) as lng from capsule";
+router.get('/', async (req, res) => { 
+    const query = "select capsule_id, \
+                            user_id, \
+                            title, \
+                            likes, \
+                            views, \
+                            date_created, \
+                            date_viewed, \
+                            status_temp,\
+                            y(location) as lat, x(location) as lng \
+                            from capsule";
+
     console.log(req.query);
+
+    const conn = await pool.getConnection();
+
     try {
-        connection.query(query, (err,rows) => {
-            console.log(rows);
-            if (err) {
-                console.log('Capsule Get-all Query Error : '+err);
-                throw err;
-            } else {
-                rows.unshift({"success":true});
-                res.writeHead(200, {'Content-Type':'application/json'});
-                res.end(JSON.stringify(rows));
-            }
-            
-        });
-    } catch {
+        const Result = await conn.query(query); 
+        let rows = Result[0];    
+        rows.unshift({"success":true});
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify(rows));
+
+    } catch(e) {
+        console.log(e)
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
+    } finally {
+        conn.release();
     }
 });
 
-router.get('/location', (req, res) => {
-    console.log(req.query);
-    const query = `select *, U_ST_DISTANCE_SPHERE(POINT(${req.query.log}, ${req.query.lat}), location) as Dist \
-    from capsule where U_ST_DISTANCE_SPHERE(POINT(${req.query.log}, ${req.query.lat}), location) <= 100 order by Dist;`
-
-    try {
-        connection.query(query, (err, rows) =>{
-            if (err) {
-                console.log("Capsule Get-location Query Error : "+err);
-                throw new Error();
-            } else if (rows) {
-                rows.unshift({"success":true});
-                res.writeHead(200, {'Content-Type':'application/json'});
-                res.end(JSON.stringify(rows));
-            } else {
-                res.writeHead(200, {'Content-Type':'application/json'});
-                res.end('{"success": false}');
-            }
-
-        });
-    } catch {
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": false}');
-    }
-});
-
-router.get('/content/:capsuleId', (req, res) => { 
-
-    const query = `select cap.capsule_id, user_id, title, likes, views, date_created, date_viewed, status_temp,\
-     y(location) as lat, x(location) as lng, content_id ,url from capsule as cap JOIN content as ct ON cap.capsule_id = ct.capsule_id AND ct.capsule_id = ${req.params.capsuleId};`
-    console.log(query);
-    try {
-        connection.query(query, (err,rows) => {
-            if (err) {
-                console.log('Capsule Get one with content Error : '+err);
-                throw new Error();
-            } else if (rows) {
-                rows.unshift({"success":true});
-                res.writeHead(200, {'Content-Type':'application/json'});
-                res.end(JSON.stringify(rows));
-            } else {
-                res.writeHead(200, {'Content-Type':'application/json'});
-                res.end('{"success": false}');
-            }
-        })
-    } catch {
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": false}');
-    }
-});
-/*
-router.post('/temp', (req,res) => {
-    const user_id;
-    const lat;
-    const lng;
-
-})
-router.post('/', (req,res) => {
-    const user_id;
-    const title;
-    const 
-});
-*/
-router.post('/', upload.array("file"), (req, res) => {
+router.get('/location', async (req, res) => {
     
+    const query = `select *, U_ST_DISTANCE_SPHERE(POINT(${req.query.lng}, ${req.query.lat}), location) as Dist \
+                    from capsule \
+                    where U_ST_DISTANCE_SPHERE(POINT(${req.query.lng}, ${req.query.lat}), location) <= 5 \
+                    order by Dist;`
+    const conn = await pool.getConnection();
+
     try {
 
+        if (req.query.lng == undefined || req.query.lat == undefined)
+            throw " Get-Query-Exception : need lng, lat ";
+
+        const Result = await conn.query(query);
+        let rows = Result[0];
+        rows.unshift({"success":true});
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify(rows));
+        
+    } catch (e) {
+        console.log(e)
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+});
+
+router.get('/content/:capsuleId', async (req, res) => { 
+
+    const query = `select cap.capsule_id, \
+                                user_id, \
+                                title, \
+                                likes, \
+                                views, \
+                                date_created, \
+                                date_viewed, \
+                                status_temp, \
+                                y(location) as lat, x(location) as lng, \
+                                content_id, \
+                                url \
+                                from capsule as cap \
+                                JOIN content as ct \
+                                ON cap.capsule_id = ct.capsule_id AND \
+                                ct.capsule_id = ${req.params.capsuleId};`
+    
+    const conn = await pool.getConnection();
+
+    try {
+
+        if (req.params.capsuleId == undefined)
+            throw "Get-URL-Capsule Exception - need capsuleId"
+
+        const Result = await conn.query(query);
+        console.log(Result[0]);
+        let rows = Result[0];
+        rows.unshift({"success":true});
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify(rows));
+
+    } catch(e) {
+        console.log(e);
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+});
+
+// Capsule 임시저장
+router.post('/', async (req,res) => {
+
+    const conn = await pool.getConnection();
+
+    try {
+        
+        if (req.body.user_id == undefined || req.body.lat == undefined || req.body.lng == undefined) {
+            throw {name: 'undefinedBodyException', message: "Post Capsule - Capsule_info not exist "};
+        }
+        const query = `insert into capsule (user_id, status_temp, location) values('${req.body.user_id}',\
+         true, point(${req.body.lng}, ${req.body.lat}));`
+
+        await conn.beginTransaction();
+
+        const insResult = await conn.query(query);
+        console.log(insResult);
+        if (insResult[0].affectedRows == 0 )
+            throw {name: 'insertNotCapsuleException', message: 'Post-Insert Not Capsule Exception'};
+
+        await conn.commit();
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": true}');
+
+    } catch (e) {
+        await conn.rollback;
+
+        if (e.name == 'undefinedBodyException') {
+            console.log(e.message);
+        } else {
+            console.log(e.message);
+        }
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+    
+
+});
+
+// Capsule 저장
+router.put('/', upload.array("file"), async (req, res) => {
+
+    const conn = await pool.getConnection();
+
+    try {
         //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
-        if (req.body.capsule_id == undefined || req.body.user_id == undefined ||
-            req.body.title == undefined ) {
-            console.log("Post Contents - Capsule_info not exist ");
-            throw new Error();
+
+        if (req.body.capsule_id == undefined || req.body.title == undefined ) {
+            throw {name: 'undefinedBodyException', message: "Put Capsule - Capsule_info not exist"};
         }
+
         const capsule_id = req.body.capsule_id;
-        const user_id = req.body.user_id;
         const title = req.body.title;
         const status_temp = 0;
         let text = null;
-        let sqlError = null;
-        let affectedFlag = false;
-        //const jsonQ = {"success":false};
-
+        let insertQuerys = "";
 
         if (req.body.text != undefined)
             text = req.body.text;
-        const query_update = `update capsule SET user_id = '${user_id}', title = '${title}', status_temp = ${status_temp}, text = ${text} where capsule_id = ${capsule_id} AND status_temp = 1`;
-        console.log(query_update);
+        const updateQuery = `update capsule SET \
+                                title = '${title}', \
+                                status_temp = ${status_temp}, \
+                                text = ${text} \
+                                where capsule_id = ${capsule_id} AND \
+                                status_temp = 1`;
+
         /*
         const capsule = {
             user_id,
             title,
             text,
             status_temp
-            
         }
         */
-        // 캡슐 업데이트(임시저장 -> 저장) 쿼리 실행
+       await req.files.forEach( file =>{
+
+        const content_name = file.filename;
+        const url = config.url().ip + ":" + config.url().port + "/contents/" + content_name;
+        const extension = path.extname(file.originalname);
+        const size = file.size;
         
-        connection.query(query_update, (err, rows) => {
-            if (err) {
-                //console.log("Post Capsule-Update Query Error : "+err);
-                sqlError = "Post Capsule-Update Query Error : "+err;
-            } else {
-                if (rows.affectedRows >= '1')
-                {
-                    affectedFlag = true;
-                }
-            }
-        });
+        const content = {
+            content_name,
+            capsule_id,
+            url,
+            extension,
+            size
+        };
         
-        // sql Error Handling
-        if (!(sqlError == null)) {
-            throw {name: 'sqlUpdateError', message: sqlError}
-        } else if (affectedFlag) {
-            console.log("Capsule-Update Query Success");
-        } else {
-            console.log("Post Capsule-Not-Update Error");
-            throw {name: 'postCapsuleNotUpdateException', message: "Post Capsule-Not-Update Error"};
-        }
-
+        const insertQuery = `insert into \
+                                content (content_name, capsule_id, url, extension, size) \
+                                value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}'); `
         
-        // 캡슐 외래키 content 쿼리 실행
-        req.files.forEach( file =>{
-            affectedFlag = false;
-            const content_name = file.filename;
-            //const capsule_id = req.body.capsule_id;
-            const url = config.url().ip + ":" + config.url().port + "/contents/" + content_name;
-            const extension = path.extname(file.originalname);
-            const size = file.size;
-            //const id = req.body.id;
+        insertQuerys = insertQuerys + insertQuery;
+    });
+        // DB Transaction Start
+        await conn.beginTransaction();
+    
+        const updResult = await conn.query(updateQuery);
+        const insResult = await conn.query(insertQuerys);
 
-            /*
-            const content = {
-                //id,
-                content_name,
-                capsule_id,
-                url,
-                extension,
-                size
-            };
-            */
+        if (updResult[0].affectedRows == 0)
+            throw {name: 'putCapsuleNotUpdateException', message: "Put Capsule-Not-Update Error"};
+        
+        insResult.forEach( Result => {
+            if (Result.affectedRows)
+                throw {name: 'putCapsuleNotInsertException', message: "Put Capsule-Not-Update Error"};
+        })
+        
+        console.log(updResult);
+        console.log(insResult);
 
-            const query_insert = `insert into content (content_name, capsule_id, url, extension, size) value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}');`
-            connection.query(query_insert, (err,rows) =>{
-                if (err) {
-                    //console.log("Capsule-Content Post Query Error :" +err);
-                    sqlError = "Capsule-Content Post Query Error :" +err;
-                } else {
-                    console.log("Capsule-Content Post Query Success");
-                }
-            });
-
-            // sql Error Handling
-            if (!(sqlError == null)) {
-                throw {name: 'sqlInsertError', message: sqlError}
-            } else if (affectedFlag) {
-                console.log("Capsule-Update Query Success");
-            } else {
-                throw {name: 'postCapsuleNotInsertException', message: "Post Capsule-Not-Update Error"}
-            }
-
-        });
+        await conn.commit();
 
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": true}');
 
     } catch (e) {
-        //console.log(e);
+
+        await conn.rollback();
         
+
         req.files.forEach( file => {
             
             let filePath = '';
@@ -281,9 +309,11 @@ router.post('/', upload.array("file"), (req, res) => {
             
         });
 
-        if (e.name == 'postCapsuleNotUpdateException') {
+        console.log(e.message);
+        /*
+        if (e.name == 'putCapsuleNotUpdateException') {
             console.log(e.message);
-        } else if (e.name == 'postCapsuleNotInsertException') {
+        } else if (e.name == 'putCapsuleNotInsertException') {
             // delete inserted contents
             // return updated capsules
             console.log(e.message);
@@ -293,13 +323,60 @@ router.post('/', upload.array("file"), (req, res) => {
             console.log(e.message);
             // delete inserted contents
             // return updated capsules
+        } else if (e.name == 'undefinedBodyException') {
+            console.log(e.message);
+        } else {
+            console.log(e.message);
         }
-            
+        */
 
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
+    } finally {
+        conn.release();
     }
 
+});
+
+router.delete('/:capsuleId', (req,res) => {
+
+
+    try {
+        const capsule_id = req.params.capsuleId;
+
+        selectQuery = `select content_name from content where capsule_id = ${capsule_id}; `;
+        deleteQuery = `delete from capsule where capsule_id = ${capsule_id};`;
+        
+        connection.query(selectQuery + deleteQuery, (err,rows) => {
+            if (err)
+                console.log(err);
+            else {
+                files = rows;
+                files.forEach( file => {
+            
+                    let filePath = '';
+                    if (isImg(file.extension, result =>{
+                        return result;
+                    })) {
+                        filePath = path.join('public/images/', file.filename);
+                    } else {
+                        filePath = path.join('public/videos/', file.filename);
+                    }
+        
+                    fs.access(filePath, fs.constants.F_OK, (err) => {
+                        if (err) console.log('Cant delete files');
+                    })
+        
+                    fs.unlink(filePath, (err) => err ?
+                    console.log(err) : console.log(`${filePath} is deleted !`));
+                    
+                });
+            }
+        });
+        
+    } catch (e) {
+        
+    }
 });
 
 module.exports = router;

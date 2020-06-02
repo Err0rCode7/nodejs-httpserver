@@ -1,0 +1,98 @@
+        /*
+        if (!(sqlError == null)) {
+            throw {name: 'sqlUpdateError', message: sqlError}
+        } else if (affectedFlag) {
+            console.log("Capsule-Update Query Success");
+        } else {
+            throw {name: 'putCapsuleNotUpdateException', message: "Put Capsule-Not-Update Error"};
+        }
+*/
+        
+
+        //const ins = await connection.query(query);
+        
+        //console.log(ins);
+
+
+        
+        /*
+        // 캡슐 업데이트(임시저장 -> 저장) 쿼리 실행
+        const q = connection.query(updateQuery, (err, rows) => {
+            if (err) {
+                //console.log("Post Capsule-Update Query Error : "+err);
+                sqlError = "Put Capsule-Update Query Error : "+err;
+            } else {
+                console.log(rows.affectedRows);
+                
+                if (rows.affectedRows >= 1)
+                {
+                    affectedFlag = true;
+                }
+                console.log(affectedFlag);
+            }
+        })
+            // sql Error Handling
+            if (!(sqlError == null)) {
+                throw {name: 'sqlUpdateError', message: sqlError}
+            } else if (affectedFlag) {
+                console.log("Capsule-Update Query Success");
+            } else {
+                throw {name: 'putCapsuleNotUpdateException', message: "Put Capsule-Not-Update Error"};
+            }
+
+        */
+        /*
+        // sql Error Handling
+        if (!(sqlError == null)) {
+            throw {name: 'sqlUpdateError', message: sqlError}
+        } else if (affectedFlag) {
+            console.log("Capsule-Update Query Success");
+        } else {
+            throw {name: 'putCapsuleNotUpdateException', message: "Put Capsule-Not-Update Error"};
+        }
+        */
+        /*
+        // 캡슐 외래키 content 쿼리 실행
+        req.files.forEach( file =>{
+
+            const content_name = file.filename;
+            const url = config.url().ip + ":" + config.url().port + "/contents/" + content_name;
+            const extension = path.extname(file.originalname);
+            const size = file.size;
+            
+            
+            const content = {
+                content_name,
+                capsule_id,
+                url,
+                extension,
+                size
+            };
+            
+
+            const insertQuery = `insert into content (content_name, capsule_id, url, extension, size) value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}');`
+            connection.query(insertQuery, (err,rows) =>{
+                if (err) {
+                    //console.log("Capsule-Content Post Query Error :" +err);
+                    sqlError = "Capsule-Content Insert Query Error :" +err;
+                    return;
+                } else {
+                    if (rows.affectedRows >= 1)
+                        affectedFlag = true;
+                    else 
+                        return;
+                    console.log("Capsule-Content Insert Query Success");
+                }
+            });
+
+            // sql Error Handling
+            if (!(sqlError == null)) {
+                throw {name: 'sqlInsertError', message: sqlError}
+            } else if (affectedFlag) {
+                console.log("Capsule-Update Query Success");
+            } else {
+                throw {name: 'putCapsuleNotInsertException', message: "Put Capsule-Not-Update Error"}
+            }
+
+        });
+        */

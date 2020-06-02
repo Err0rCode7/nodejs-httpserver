@@ -4,7 +4,9 @@ const db_config = {
     user : '',
     password : '',
     port : '',
-    database : ''
+    database : '',
+    connectionLimit: 10,
+    multipleStatements: true
     };
 
 const cors_option = {

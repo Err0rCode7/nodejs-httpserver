@@ -92,14 +92,14 @@ router.get('/capsule-id/:capsuleId', (req, res) => {
         connection.query(query, (err, rows, field) =>{
             if (err) {
                 console.log('Content Capsule-id Query Error'+err);
-                throw error;
+                throw Error;
             }
         });
         res.writeHead(200, { 'Content-Type' : 'application/json' });
         res.end('{"success": true}');
 
-    } catch(error) {
-        console.log(error);
+    } catch(e) {
+        console.log(e);
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
     }
@@ -119,7 +119,7 @@ router.get('/:contentid', (req, res, next) => {
         const contentId = req.params.contentid;
         if (contentId == undefined) {
             console.log('Undefined contentId')
-            throw error;
+            throw Error;
         }
         let contentPath = "";
         console.log((path.extname(contentId)));
@@ -180,11 +180,15 @@ router.post('/', upload.array("file"), (req, res) => {
     try{
         //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
+
+        let sqlError = null;
+        let affectedFlag = false;
         if(req.body.capsule_id == undefined) {
             console.log(" Post Contents - Capsule_id not exist ");
-            throw error;
+            throw Error;
         }
         req.files.forEach( file =>{
+
             const content_name = file.filename;
             const capsule_id = req.body.capsule_id;
             const url = config.url().ip + ":" + config.url().port + "/contents/" + content_name;
@@ -202,18 +206,57 @@ router.post('/', upload.array("file"), (req, res) => {
             const query = `insert into content (content_name, capsule_id, url, extension, size) value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}');`
             connection.query(query, (err,rows) =>{
                 if (err) {
-                    console.log("Content Post Query Error :" +err);
-                    throw err;
+                    //console.log("Content Post Query Error :" +err);
+                    sqlError = "Content Post Query Error :" +err;
+                } else if (rows[0].affectedRows >= '1') {
+                    affectedFlag = true;
+                } else {
+                    return;
                 }
             });
-            console.log(content);
+            
+            if (sqlError != null) {
+                throw {name: "sqlInsertException", message: sqlError};
+            } else if (affectedFlag) {
+                console.log("Insert Content Success.");
+            } else {
+                throw {name: "insertNotException", message: "Insert Not Contents"};
+            }
         });
 
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": true}');
 
-    } catch (error) {
-        console.log(error);
+    } catch (e) {
+        //console.log(error);
+        
+        req.files.forEach( file => {
+            
+            let filePath = '';
+            if (isImg(file.extension, result =>{
+                return result;
+            })) {
+                filePath = path.join('public/images/', file.filename);
+            } else {
+                filePath = path.join('public/videos/', file.filename);
+            }
+
+            fs.access(filePath, fs.constants.F_OK, (err) => {
+                if (err) console.log('Cant delete files');
+            })
+
+            fs.unlink(filePath, (err) => err ?
+            console.log(err) : console.log(`${filePath} is deleted !`));
+            
+        });
+
+        if (e.name == "sqlInsertException") {
+            console.log(e.message);
+        } else if (e.name == "insertNotException") {
+            console.log(e.message);
+            
+        }
+
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
     }
@@ -232,7 +275,8 @@ router.delete('/:contentName', (req, res) =>{
     const query = `delete from content where content_name = '${content_name}';`;
     try {
   
-            
+        let sqlError = null;
+        let affectedFlag = false;
         let filePath = '';
         if (isImg(path.extension(content_name), result =>{
             return result;
@@ -253,19 +297,27 @@ router.delete('/:contentName', (req, res) =>{
 
         connection.query(query, (err,rows,field) =>{
             if (err) {
-                console.log("Delete Content Query Error : "+err);
-                throw error;
+                //console.log("Delete Content Query Error : "+err);
+                sqlError = "Delete Content Query Error : "+err
+                return;
             } else {
                 if(rows.affectedRows >= '1' ) {
+                    affectedFlag = true;
                     res.writeHead(200, {'Content-Type':'application/json'});
                     res.end('{"success": true}');
                 }
             }
         });
+        if (affectedFlag) {
+            console.log("Delete Content Success");
+        } else if (sqlError != null) {
+            throw {name: "deleteContentException", message: sqlError};
+        }
 
-        
-
-    } catch {
+    } catch (e) {
+        if (e.name == "deleteContentException") {
+            console.log(e.message);
+        }
 
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
