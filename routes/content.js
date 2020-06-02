@@ -5,11 +5,13 @@ const mime = require('mime');
 const multer = require('multer');
 const path = require('path');
 const config = require('../config/config')
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
 
 
 const router = express.Router();
+const pool = mysql.createPool(config.db());
 
+/*
 const connection = mysql.createConnection(config.db());
 connection.connect( (err) => {
     if(err) {
@@ -17,6 +19,7 @@ connection.connect( (err) => {
         return;
     }
 });
+*/
 
 // ImageType ( Post )
 /*
@@ -79,35 +82,29 @@ const upload = multer({
     storage: storage
 });
 
-// Get contentId
+// Get contents
 
-router.get('/capsule-id/:capsuleId', (req, res) => {
+router.get('/capsule-id/:capsuleId', async (req, res) => {
     console.log(req.params.capsuleId);
-    
+    const conn = await pool.getConnection();
+
     const capsuleId = req.params.capsuleId;
     const query = `select * from content where capsule_id = ${capsuleId};`;
-    /* sql select contentId with capsule Id */
+
     try {
-        
-        connection.query(query, (err, rows, field) =>{
-            if (err) {
-                console.log('Content Capsule-id Query Error'+err);
-                throw Error;
-            }
-        });
-        res.writeHead(200, { 'Content-Type' : 'application/json' });
-        res.end('{"success": true}');
+        const result = await conn.query(query);
+        let rows = result[0];
+        rows.unshift({"success":true});
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify(rows))
 
     } catch(e) {
         console.log(e);
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
+    } finally {
+        conn.release();
     }
-
-    /* sql select contentId with capsule Id */
-
-
-
 });
 
 
@@ -118,8 +115,7 @@ router.get('/:contentid', (req, res, next) => {
     try{
         const contentId = req.params.contentid;
         if (contentId == undefined) {
-            console.log('Undefined contentId')
-            throw Error;
+            throw Error('Undefined contentId');
         }
         let contentPath = "";
         console.log((path.extname(contentId)));
@@ -175,19 +171,18 @@ router.get('/:contentid', (req, res, next) => {
 
 // post contents ( upload image-form data )
 //      multer 는 헤더에 content-type:x-www-form-urlencoded 를 사용하지 않고 multipart/form-data를 사용한다.
-router.post('/', upload.array("file"), (req, res) => {
-    
+router.post('/', upload.array("file"), async (req, res) => {
+    const conn = await pool.getConnection();
+
     try{
         //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
 
-        let sqlError = null;
-        let affectedFlag = false;
+        let querys = "";
         if(req.body.capsule_id == undefined) {
-            console.log(" Post Contents - Capsule_id not exist ");
-            throw Error;
+            throw {name: "postIdNotExistException", message: "Post Contents - Capsule_id not exist"};
         }
-        req.files.forEach( file =>{
+        await req.files.forEach( file =>{
 
             const content_name = file.filename;
             const capsule_id = req.body.capsule_id;
@@ -204,58 +199,38 @@ router.post('/', upload.array("file"), (req, res) => {
                 size
             };
             const query = `insert into content (content_name, capsule_id, url, extension, size) value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}');`
-            connection.query(query, (err,rows) =>{
-                if (err) {
-                    //console.log("Content Post Query Error :" +err);
-                    sqlError = "Content Post Query Error :" +err;
-                } else if (rows[0].affectedRows >= '1') {
-                    affectedFlag = true;
-                } else {
-                    return;
-                }
-            });
-            
-            if (sqlError != null) {
-                throw {name: "sqlInsertException", message: sqlError};
-            } else if (affectedFlag) {
-                console.log("Insert Content Success.");
-            } else {
-                throw {name: "insertNotException", message: "Insert Not Contents"};
-            }
+            querys = querys + query;
         });
 
+        const results = await conn.query(querys);
+        
+        results.forEach( result => {
+            console.log(result);
+            if(result == undefined)
+                return;
+            if(result.affectedRows == 0 )
+                throw {name: "insertNotException", message: "Insert Not Contents"};
+        })
+
+        await conn.commit();
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": true}');
 
     } catch (e) {
         //console.log(error);
-        
-        req.files.forEach( file => {
-            
-            let filePath = '';
-            if (isImg(file.extension, result =>{
-                return result;
-            })) {
-                filePath = path.join('public/images/', file.filename);
-            } else {
-                filePath = path.join('public/videos/', file.filename);
-            }
+        await conn.rollback();
 
+        req.files.forEach( file => {
+            const filePath = file.path
             fs.access(filePath, fs.constants.F_OK, (err) => {
                 if (err) console.log('Cant delete files');
             })
 
             fs.unlink(filePath, (err) => err ?
             console.log(err) : console.log(`${filePath} is deleted !`));
-            
         });
 
-        if (e.name == "sqlInsertException") {
-            console.log(e.message);
-        } else if (e.name == "insertNotException") {
-            console.log(e.message);
-            
-        }
+        console.log(e);
 
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
@@ -268,17 +243,17 @@ router.put('/', (req, res) =>{
     res.end('404 Page Not Found');
 });
 
-router.delete('/:contentName', (req, res) =>{
+router.delete('/:contentName', async (req, res) =>{
 
     
     const content_name = req.params.contentName;
-    const query = `delete from content where content_name = '${content_name}';`;
+    const query = `delete from content where content_name = '${content_name}';`;    
+    const conn = await pool.getConnection();
+
     try {
-  
-        let sqlError = null;
-        let affectedFlag = false;
+
         let filePath = '';
-        if (isImg(path.extension(content_name), result =>{
+        if (isImg(path.extname(content_name), result =>{
             return result;
         })) {
             filePath = path.join('public/images/', content_name);
@@ -290,37 +265,31 @@ router.delete('/:contentName', (req, res) =>{
             if (err) console.log('Cant delete files');
         })
 
-        fs.unlink(filePath, (err) => err ?
-        console.log(err) : console.log(`${filePath} is deleted !`));
-            
-
-
-        connection.query(query, (err,rows,field) =>{
-            if (err) {
-                //console.log("Delete Content Query Error : "+err);
-                sqlError = "Delete Content Query Error : "+err
-                return;
-            } else {
-                if(rows.affectedRows >= '1' ) {
-                    affectedFlag = true;
-                    res.writeHead(200, {'Content-Type':'application/json'});
-                    res.end('{"success": true}');
-                }
-            }
+        fs.unlink(filePath, (err) => {
+            if (err) 
+                console.log(err);
+            console.log(`${filePath} is deleted !`);
         });
-        if (affectedFlag) {
-            console.log("Delete Content Success");
-        } else if (sqlError != null) {
-            throw {name: "deleteContentException", message: sqlError};
-        }
+        
+        await conn.beginTransaction();
+        
+        const result = await conn.query(query);
+        let rows = result[0];
+
+        if(rows.affectedRows == 0)
+            throw {name: "deletedRowsNotExistException", message: "Deleted rows not Exist Exception"};
+
+        await conn.commit();
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": true}');
 
     } catch (e) {
-        if (e.name == "deleteContentException") {
-            console.log(e.message);
-        }
-
+        console.log(e);
+        await conn.rollback();
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
+    } finally {
+        conn.release();
     }
 
 });
