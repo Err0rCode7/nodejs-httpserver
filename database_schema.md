@@ -118,3 +118,17 @@ create procedure test() begin declare i int; set i = 0; while i < 17 do insert i
 
 delimiter ;
 ```
+
+## Function
+```
+delimiter $$
+
+CREATE
+    FUNCTION `u_st_distance_sphere`(`pt1` POINT, `pt2` POINT)
+    RETURNS DECIMAL(10,2)
+    BEGIN
+	RETURN 6371000 * 2 * ASIN(SQRT(POWER(SIN((ST_Y(pt2) - ST_Y(pt1)) * PI()/180 / 2), 2) + COS(ST_Y(pt1) * PI()/180 ) * COS(ST_Y(pt2) * PI()/180) * POWER(SIN((ST_X(pt2) - ST_X(pt1)) * PI()/180 / 2), 2) ));
+    END$$
+
+delimiter ;
+```
