@@ -53,7 +53,8 @@ Develope http-streaming-server
     ---
     - Post/ `./users/auth/` 
     - Check authorization(login) of a user 
-    
+    - [Android](https://github.com/Err0rCode7/capsule-time-android) 에서 테스트 완료
+
 - contents ( image or video )
 
     - Get/ `./contents/:contentId` 
