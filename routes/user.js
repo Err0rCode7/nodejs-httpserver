@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
                     from user;`;
     try {
         const result = await conn.query(query);
-        const rows = result[0];
+        let rows = result[0];
 
         rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
@@ -48,8 +48,8 @@ router.get('/:id', async (req, res) => {
     const conn = await pool.getConnection();
     try {
         const result = await conn.query(query);
-        const rows = result[0];
-        
+        let rows = result[0];
+
         if (rows.length == 0){
             throw "Exception : Cant Find User";
         }
@@ -87,6 +87,10 @@ router.post('/', async (req, res) => {
     try {
 
         await conn.beginTransaction();
+
+        /*
+            특수문자 예외 처리 필요한 부분
+        */
 
         const result = await conn.query(query)
         const rows = result[0];

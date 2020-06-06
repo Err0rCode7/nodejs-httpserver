@@ -35,7 +35,7 @@ create table `capsule`(
     views INT UNSIGNED DEFAULT 0 NOT NULL,
     text varchar(200),
     date_created TIMESTAMP DEFAULT now() NOT NULL,
-    date_viewed TIMESTAMP DEFAULT now() NOT NULL,
+    date_opened TIMESTAMP DEFAULT now() NOT NULL,
     status_temp boolean DEFAULT true NOT NULL,
     location point NOT NULL,
     primary key(capsule_id),

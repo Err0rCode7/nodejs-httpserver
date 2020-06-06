@@ -68,7 +68,7 @@ router.get('/', async (req, res) => {
                             likes, \
                             views, \
                             date_created, \
-                            date_viewed, \
+                            date_opened, \
                             status_temp,\
                             y(location) as lat, x(location) as lng \
                             from capsule";
@@ -124,6 +124,7 @@ router.get('/location', async (req, res) => {
     }
 });
 router.get('/user', async (req, res)=>{
+    
     const { user_id } = req.query;
     const conn = await pool.getConnection();
     const query = `select cap.capsule_id, \
@@ -132,16 +133,17 @@ router.get('/user', async (req, res)=>{
                             likes, \
                             views, \
                             date_created, \
-                            date_viewed, \
+                            date_opened, \
                             status_temp, \
                             y(location) as lat, x(location) as lng, \
                             content_id, \
                             url \
                         from capsule as cap \
-                        JOIN content as ct \
-                        ON cap.capsule_id = ct.capsule_id AND \
-                        cap.user_id = '${user_id}' \
-                        ORDER BY capsule_id DESC;`
+                        LEFT JOIN content as ct \
+                        ON cap.capsule_id = ct.capsule_id \
+                        where cap.user_id = '${user_id}' \
+                        ORDER BY capsule_id DESC;`;
+
     try {
         
         const result = await conn.query(query);
@@ -152,7 +154,7 @@ router.get('/user', async (req, res)=>{
         let i = 0;
         let content = [];
         let capsules = [];
-        let { capsule_id, user_id, title, likes, views, date_created, date_viewed, status_temp, lat, lng } = rows[0];
+        let { capsule_id, user_id, title, likes, views, date_created, date_opened, status_temp, lat, lng } = rows[0];
         capsules.push({
             capsule_id,
             user_id,
@@ -160,7 +162,7 @@ router.get('/user', async (req, res)=>{
             likes,
             views,
             date_created,
-            date_viewed,
+            date_opened,
             status_temp,
             lat,
             lng,
@@ -188,7 +190,7 @@ router.get('/user', async (req, res)=>{
                         likes: item.likes,
                         views: item.views,
                         date_created: item.date_created,
-                        date_viewed: item.date_viewed,
+                        date_opened: item.date_opened,
                         status_temp: item.status_temp,
                         lat: item.lat,
                         lng: item.lng,
@@ -208,7 +210,7 @@ router.get('/user', async (req, res)=>{
             i = i + 1;
         });
 
-        capsules.unshift({"success":true});
+        //capsules.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(capsules));
     } catch (e) {
@@ -228,7 +230,7 @@ router.get('/:capsuleId', async (req, res) => {
                                 likes, \
                                 views, \
                                 date_created, \
-                                date_viewed, \
+                                date_opened, \
                                 status_temp, \
                                 y(location) as lat, x(location) as lng, \
                                 content_id, \
@@ -251,7 +253,7 @@ router.get('/:capsuleId', async (req, res) => {
         if (rows.length == 0)
             throw "Exception : Cant Find Capsule with capsule_id";
         
-        const {capsule_id, user_id, title, likes, views, date_created, date_viewed, status_temp, lat, lng} = rows[0];
+        const {capsule_id, user_id, title, likes, views, date_created, date_opened, status_temp, lat, lng} = rows[0];
         let content = [];
         rows.forEach( item => {
             content.push({content_id: item.content_id, url: item.url});
@@ -264,7 +266,7 @@ router.get('/:capsuleId', async (req, res) => {
             likes,
             views,
             date_created,
-            date_viewed,
+            date_opened,
             status_temp,
             lat,
             lng,
@@ -272,7 +274,7 @@ router.get('/:capsuleId', async (req, res) => {
         }];
 
         //console.log(temp);
-        resJson.unshift({"success":true});
+        //resJson.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(resJson));
 
@@ -280,7 +282,7 @@ router.get('/:capsuleId', async (req, res) => {
         console.log(e);
 
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": false}');
+        //res.end('{"success": false}');
     } finally {
         conn.release();
     }
@@ -332,27 +334,37 @@ router.post('/', async (req,res) => {
 router.put('/', upload.array("file"), async (req, res) => {
 
     const conn = await pool.getConnection();
+    
+    const filesInfo = req.files
+    const capsule_id = req.body.capsule_id;
+    let title = req.body.title;
+    const text = req.body.text;
+    
+    // mysql ' " exception control
+    title = title.replace("'","\\'").replace('"','\\"');
 
+    console.log(title);
+    let textQuery = null;
+    if (text != undefined)
+    textQuery = '\'' + text + '\'';
+
+    console.log(filesInfo);
     try {
         //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
 
-        if (req.body.capsule_id == undefined || req.body.title == undefined ) {
+        if (capsule_id == undefined || title == undefined || filesInfo == undefined ) {
             throw {name: 'undefinedBodyException', message: "Put Capsule - Capsule_info not exist"};
         }
 
-        const capsule_id = req.body.capsule_id;
-        const title = req.body.title;
         const status_temp = 0;
-        let text = null;
+
         let insertQuerys = "";
 
-        if (req.body.text != undefined)
-            text = '\'' + req.body.text + '\'';
         const updateQuery = `update capsule SET \
                                 title = '${title}', \
                                 status_temp = ${status_temp}, \
-                                text = ${text} \
+                                text = ${textQuery} \
                                 where capsule_id = ${capsule_id} AND \
                                 status_temp = 1`;
 
@@ -364,12 +376,12 @@ router.put('/', upload.array("file"), async (req, res) => {
             status_temp
         }
         */
-       await req.files.forEach( file =>{
+       await filesInfo.forEach( item =>{
 
-        const content_name = file.filename;
+        const content_name = item.filename;
         const url = "http://"+ config.url().ip + ":" + config.url().port + "/contents/" + content_name;
-        const extension = path.extname(file.originalname);
-        const size = file.size;
+        const extension = path.extname(item.originalname);
+        const size = item.size;
         
         const content = {
             content_name,
@@ -387,7 +399,6 @@ router.put('/', upload.array("file"), async (req, res) => {
     });
         // DB Transaction Start
         await conn.beginTransaction();
-    
         const updResult = await conn.query(updateQuery);
         const insResult = await conn.query(insertQuerys);
 
@@ -397,12 +408,11 @@ router.put('/', upload.array("file"), async (req, res) => {
         insResult.forEach( result => {
             if(result == undefined)
                 return;
-            if (result.affectedRows)
-                throw {name: 'putCapsuleNotInsertException', message: "Put Capsule-Not-Update Error"};
+            if (result.affectedRows == 0)
+                throw {name: 'putCapsuleNotInsertException', message: "Put Capsule-Not-Insert Error"};
         })
         
-        console.log(updResult);
-        console.log(insResult);
+
 
         await conn.commit();
 
@@ -414,17 +424,10 @@ router.put('/', upload.array("file"), async (req, res) => {
         await conn.rollback();
         
 
-        req.files.forEach( file => {
+        await filesInfo.forEach( item => {
             
-            let filePath = '';
-            if (isImg(file.extension, result =>{
-                return result;
-            })) {
-                filePath = path.join('public/images/', file.filename);
-            } else {
-                filePath = path.join('public/videos/', file.filename);
-            }
-
+            const filePath = item.path;
+            
             fs.access(filePath, fs.constants.F_OK, (err) => {
                 if (err) console.log('Cant delete files');
             })
