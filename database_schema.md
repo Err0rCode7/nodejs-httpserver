@@ -7,13 +7,16 @@ create table `user` (
     id int UNSIGNED NOT NULL AUTO_INCREMENT unique,
     user_id varchar(15) NOT NULL unique,
     password varchar(100) NOT NULL,
-    nick_name varchar(15) NOT NULL,
-    first_name varchar(10) NOT NULL,
-    last_name varchar(15) NOT NULL,
+    +email varchar(320) NOT NULL,
+    nick_name varchar(15) character set utf8 NOT NULL,
+    first_name varchar(10) character set utf8 NOT NULL,
+    last_name varchar(15) character set utf8 NOT NULL,
     date_created TIMESTAMP DEFAULT now() NOT NULL,
     date_updated TIMESTAMP DEFAULT now() NOT NULL,
     follower INT UNSIGNED DEFAULT 0 NOT NULL,
-    follow INT UNSIGNED DEFAULT 0 NOT NULL, 
+    follow INT UNSIGNED DEFAULT 0 NOT NULL,
+    image_url varchar(100) DEFAULT NULL,
+    image_name varchar(25) DEFAULT NULL,
     primary key(id, user_id)
 );
 
@@ -30,10 +33,10 @@ create table `user` (
 create table `capsule`(
     capsule_id int UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id varchar(15) NOT NULL,
-    title varchar(100),
+    title varchar(100) character set utf8,
     likes INT UNSIGNED DEFAULT 0 NOT NULL,
     views INT UNSIGNED DEFAULT 0 NOT NULL,
-    text varchar(200),
+    text varchar(200) character set utf8,
     date_created TIMESTAMP DEFAULT now() NOT NULL,
     date_opened TIMESTAMP DEFAULT now() NOT NULL,
     status_temp boolean DEFAULT true NOT NULL,
@@ -43,7 +46,7 @@ create table `capsule`(
 ) ENGINE=InnoDB;
 
 // insert capsule
-// insert into capsule (user_id, title, likes, views, text, date_created, date_viewed, status_temp) values('id1', 'Hello World', '');
+// insert into capsule (user_id, title, likes, views, text, date_created, date_opened, status_temp) values('id1', 'Hello World', '');
 // insert into capsule (user_id, status_temp, location) values('id1', true, point(126.955869, 37.546037));
 
 // select position 
@@ -56,7 +59,7 @@ create table `capsule`(
 ```
 create table `content`(
     content_id int UNSIGNED NOT NULL AUTO_INCREMENT,
-    +content_name varchar(25) NOT NULL unique,
+    content_name varchar(25) NOT NULL unique,
     capsule_id int UNSIGNED NOT NULL,
     url varchar(100) NOT NULL,
     extension varchar(10) NOT NULL,
@@ -118,6 +121,9 @@ delimiter $$
 create procedure test() begin declare i int; set i = 0; while i < 17 do insert into user (user_id, password, nick_name, first_name, last_name, date_created, date_updated) values(concat('id',i), password('123456'), i, concat('first',i), concat('last', i), now(), now()); set i=i+1; end while; end $$
 
 delimiter ;
+
+// 실행
+call test();
 ```
 
 ## Function

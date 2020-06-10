@@ -255,7 +255,20 @@ router.get('/:capsuleId', async (req, res) => {
                             JOIN content as ct \
                             ON cap.capsule_id = ct.capsule_id AND \
                             ct.capsule_id = ${req.params.capsuleId};`
-    
+
+    const query_temp_capsule = `select capsule_id, \
+                                        user_id, \
+                                        title, \
+                                        likes, \
+                                        views, \
+                                        date_created, \
+                                        date_opened, \
+                                        status_temp, \
+                                        y(location) as lat, x(location) as lng \
+                                        from capsule \
+                                        where capsule_id = ${req.params.capsuleId} AND \
+                                            status_temp = 1;`;
+
     const conn = await pool.getConnection();
 
     try {
@@ -263,37 +276,53 @@ router.get('/:capsuleId', async (req, res) => {
         if (req.params.capsuleId == undefined)
             throw "Get-URL-Capsule Exception - need capsuleId"
 
-        const result = await conn.query(query);
-        console.log(result[0]);
-        let rows = result[0];
-        if (rows.length == 0)
-            throw "Exception : Cant Find Capsule with capsule_id";
         
-        const {capsule_id, user_id, title, likes, views, date_created, date_opened, status_temp, lat, lng} = rows[0];
-        let content = [];
-        rows.forEach( item => {
-            content.push({content_id: item.content_id, url: item.url});
-        });
+        let result = await conn.query(query);
+        let result_temp = await conn.query(query_temp_capsule);
+        let rows = result[0];
+        let rows_temp = result_temp[0];
+        let resJson = [];
+        if (rows.length == 0 && rows_temp.length == 0)
+            throw "Exception : Cant Find Capsule with capsule_id";
 
-        const resJson = [{
-            capsule_id,
-            user_id,
-            title,
-            likes,
-            views,
-            date_created,
-            date_opened,
-            status_temp,
-            lat,
-            lng,
-            content: content
-        }];
+        if (rows.length != 0) {
+            
+            const {capsule_id, user_id, title, likes, views, date_created, date_opened, status_temp, lat, lng} = rows[0];
+            let content = [];
+            rows.forEach( item => {
+                content.push({content_id: item.content_id, url: item.url});
+            });
+    
+            const rowsJson = {
+                capsule_id,
+                user_id,
+                title,
+                likes,
+                views,
+                date_created,
+                date_opened,
+                status_temp,
+                lat,
+                lng,
+                content: content
+            };
+            resJson.push(rowsJson);
+        } 
+        
+        if (rows_temp != 0) {
+            console.log(rows_temp);
+            rows_temp.forEach( tempCapsule => {
+                rows_temp[0].content = null;
+                resJson.push(tempCapsule);
+            });
+        } 
 
-        //console.log(temp);
-        //resJson.unshift({"success":true});
+        //console.log(resJson);
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(resJson));
 
+        //console.log(temp);
+        //resJson.unshift({"success":true});
     } catch(e) {
         console.log(e);
 
