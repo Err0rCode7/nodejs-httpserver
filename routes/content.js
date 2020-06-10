@@ -85,6 +85,11 @@ const upload = multer({
 // Get contents
 
 router.get('/capsule-id/:capsuleId', async (req, res) => {
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
     console.log(req.params.capsuleId);
     const conn = await pool.getConnection();
 
@@ -111,6 +116,10 @@ router.get('/capsule-id/:capsuleId', async (req, res) => {
 // Get contents
 
 router.get('/:contentid', (req, res, next) => {
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     try{
         const contentId = req.params.contentid;
@@ -172,6 +181,11 @@ router.get('/:contentid', (req, res, next) => {
 // post contents ( upload image-form data )
 //      multer 는 헤더에 content-type:x-www-form-urlencoded 를 사용하지 않고 multipart/form-data를 사용한다.
 router.post('/', upload.array("file"), async (req, res) => {
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
     const conn = await pool.getConnection();
 
     try{
@@ -241,12 +255,20 @@ router.post('/', upload.array("file"), async (req, res) => {
 });
 
 router.put('/', (req, res) =>{
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
     res.writeHead(404, {'Content-Type':'text/html'});
     res.end('404 Page Not Found');
 });
 
 router.delete('/:contentName', async (req, res) =>{
 
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     
     const content_name = req.params.contentName;
     const query = `delete from content where content_name = '${content_name}';`;    

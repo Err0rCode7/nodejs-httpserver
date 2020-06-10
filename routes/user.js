@@ -7,6 +7,10 @@ const router = express.Router();
 const pool = mysql.createPool(config.db());
 
 router.get('/', async (req, res) => {
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     
     const conn = await pool.getConnection();
     const query = `select user_id, \
@@ -20,14 +24,15 @@ router.get('/', async (req, res) => {
         const result = await conn.query(query);
         let rows = result[0];
 
-        rows.unshift({"success":true});
+        //rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows)); //json object로 변경
 
     } catch(e) {
         console.log(e);
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": false}'); 
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+        //res.end('{"success": false}'); 
     } finally {
         conn.release();
     }
@@ -35,6 +40,10 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/:id', async (req, res) => {
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const query = `select user_id, \
                         nick_name, \
@@ -54,14 +63,15 @@ router.get('/:id', async (req, res) => {
             throw "Exception : Cant Find User";
         }
 
-        rows.unshift({"success":true});
+        //rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows)); //json object로 변경
 
     } catch (e) {
         console.log(e);
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": false}'); 
+        res.end();
+        //res.end('{"success": false}'); 
     } finally {
         conn.release();
     }
@@ -70,6 +80,10 @@ router.get('/:id', async (req, res) => {
 //register
 router.post('/', async (req, res) => {
     
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
     //console.log(req.body);
     const {user_id, password, nick_name, first_name, last_name} = req.body;
     const query = `insert into user (user_id, \
@@ -116,6 +130,10 @@ router.post('/', async (req, res) => {
 
 router.post('/auth', async (req, res) =>{
 
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
     const query = `select user_id from user where user_id = "${req.body.user_id}" and password = password("${req.body.password}");`;   
     const conn = await pool.getConnection();
     try {
@@ -139,6 +157,11 @@ router.post('/auth', async (req, res) =>{
 });
 
 router.put('/', async (req, res) => {
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
     const {password, nick_name, first_name, last_name, user_id} = req.body;
     const query = `update user set \
     password = password("${password}"), \
@@ -174,6 +197,11 @@ router.put('/', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) =>{
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
     const query = `delete from user \
                     where user_id="${req.params.id}"`;
     const conn = await pool.getConnection();

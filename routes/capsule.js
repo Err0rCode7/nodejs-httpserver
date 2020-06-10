@@ -61,7 +61,10 @@ const upload = multer({
 });
 
 
-router.get('/', async (req, res) => { 
+router.get('/', async (req, res) => {
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');    
     const query = "select capsule_id, \
                             user_id, \
                             title, \
@@ -73,27 +76,30 @@ router.get('/', async (req, res) => {
                             y(location) as lat, x(location) as lng \
                             from capsule";
 
-    console.log(req.query);
-
     const conn = await pool.getConnection();
 
     try {
         const result = await conn.query(query); 
         let rows = result[0];    
-        rows.unshift({"success":true});
-        res.writeHead(200, {'Content-Type':'application/json'});
+        //rows.unshift({"success":true});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows));
 
     } catch(e) {
         console.log(e)
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": false}');
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+        //res.end('{"success": false}');
     } finally {
         conn.release();
     }
 });
 
 router.get('/location', async (req, res) => {
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
     const {lng, lat} = req.query;
     const query = `select *, U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) as Dist \
                     from capsule \
@@ -111,20 +117,25 @@ router.get('/location', async (req, res) => {
         if (rows.length == 0){
             throw "Exception : Cant Find Capsules";
         }
-        rows.unshift({"success":true});
+        //rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows));
         
     } catch (e) {
         console.log(e)
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": false}');
+        res.end();
+        //res.end('{"success": false}');
     } finally {
         conn.release();
     }
 });
 router.get('/user', async (req, res)=>{
     
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
     const { user_id } = req.query;
     const conn = await pool.getConnection();
     const query = `select cap.capsule_id, \
@@ -216,13 +227,18 @@ router.get('/user', async (req, res)=>{
     } catch (e) {
         console.log(e);
 
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": false}');
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+        //res.end('{"success": false}');
     } finally {
         conn.release();
     }
 });
 router.get('/:capsuleId', async (req, res) => { 
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const query = `select cap.capsule_id, \
                                 user_id, \
@@ -281,7 +297,8 @@ router.get('/:capsuleId', async (req, res) => {
     } catch(e) {
         console.log(e);
 
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
         //res.end('{"success": false}');
     } finally {
         conn.release();
@@ -290,6 +307,10 @@ router.get('/:capsuleId', async (req, res) => {
 
 // Capsule 임시저장
 router.post('/', async (req,res) => {
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const conn = await pool.getConnection();
 
@@ -333,6 +354,12 @@ router.post('/', async (req,res) => {
 // Capsule 저장
 router.put('/', upload.array("file"), async (req, res) => {
 
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    console.log(req.body);
+
     const conn = await pool.getConnection();
     
     const filesInfo = req.files
@@ -343,7 +370,6 @@ router.put('/', upload.array("file"), async (req, res) => {
     // mysql ' " exception control
     title = title.replace("'","\\'").replace('"','\\"');
 
-    console.log(title);
     let textQuery = null;
     if (text != undefined)
     textQuery = '\'' + text + '\'';
@@ -467,6 +493,10 @@ router.put('/', upload.array("file"), async (req, res) => {
 });
 
 router.delete('/:capsuleId', async (req,res) => {
+
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const conn = await pool.getConnection();
 
