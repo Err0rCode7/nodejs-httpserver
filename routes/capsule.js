@@ -1,12 +1,10 @@
 const express = require('express');
 const fs = require('fs');
 const mime = require('mime');
-//const queryString = require('querystring');
 const multer = require('multer');
 const path = require('path');
 const config = require('../config/config')
 const mysql = require('mysql2/promise');
-
 
 const router = express.Router();
 const pool = mysql.createPool(config.db());
@@ -387,8 +385,6 @@ router.put('/', upload.array("file"), async (req, res) => {
     console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    console.log(req.body);
-
     const conn = await pool.getConnection();
     
     const filesInfo = req.files
@@ -555,7 +551,7 @@ router.delete('/:capsuleId', async (req,res) => {
 
             fs.access(filePath, fs.constants.F_OK, (err) => {
                 if (err) console.log('Cant delete files');
-            })
+            });
 
             fs.unlink(filePath, (err) => err ?
             console.log(err) : console.log(`${filePath} is deleted !`));
@@ -577,7 +573,8 @@ router.delete('/:capsuleId', async (req,res) => {
         await conn.rollback();
         console.log(e);
 
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
+        //res.end();
         res.end('{"success": false}');
 
     } finally {

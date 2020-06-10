@@ -1,10 +1,63 @@
 const express = require('express');
+const fs = require('fs');
 const mysql = require('mysql2/promise');
 const config = require('../config/config.js');
+const multer = require('multer');
+const path = require('path');
 
 const router = express.Router();
 
 const pool = mysql.createPool(config.db());
+
+// file upload object
+
+function isImg(extension, callback){
+    if ( extension == ".png" || extension == ".bmp" || extension == ".jpg" ||
+    extension == ".jpeg" || extension == ".webp" || extension == ".gif" ) {
+        return callback(true);
+    } else {
+        return callback(false);
+    }
+};
+
+const storage = multer.diskStorage({
+    // Path 콜백
+    destination : (req, file, callback) => {
+            
+        if ( isImg((path.extname(file.originalname)), result => {
+            return result
+        })) {
+            callback(null, 'public/images/');   
+        } else {
+            callback(null, 'public/videos/');
+        }
+           
+    },
+
+    limits: (res ,req) => {
+        // image-size limit
+        if ( isImg((path.extname(file.originalname)), result => {
+            return result
+        })) {
+            fileSize: 5 * 1024 * 1024 // limit: 5MB
+        } else { // video-size limit
+            fileSize: 20 * 1024 * 1024 // limit: 20MB
+        }
+    },
+    // Stored fileName
+    filename : (req, file, callback) => {
+        // 파일명 설정을 돕기 위해 확장자 추출
+        const extension = path.extname(file.originalname);
+        
+        // 시간 + 확장자를 파일명으로 콜백
+        callback(null, Date.now()+extension);
+    }
+});
+
+const upload = multer({
+    storage: storage
+});
+
 
 router.get('/', async (req, res) => {
 
@@ -17,8 +70,12 @@ router.get('/', async (req, res) => {
                         nick_name, \
                         first_name, \
                         last_name, \
+                        email_id, \
+                        email_domain, \
                         date_created, \
-                        date_updated \
+                        date_updated, \
+                        image_url, \
+                        image_name \
                     from user;`;
     try {
         const result = await conn.query(query);
@@ -49,8 +106,12 @@ router.get('/:id', async (req, res) => {
                         nick_name, \
                         first_name, \
                         last_name, \
+                        email_id, \
+                        email_domain,
                         date_created, \
-                        date_updated \
+                        date_updated, \
+                        image_url, \
+                        image_name \
                     from user \
                     where user_id = "${req.params.id}";`;
 
@@ -78,6 +139,93 @@ router.get('/:id', async (req, res) => {
     
 });
 //register
+
+router.post('/with/image', upload.single("file") ,async (req, res) =>{
+
+    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+    
+    const fileInfo = req.file;
+    const {user_id, password, nick_name, first_name, last_name, email} = req.body;
+    const fileName = fileInfo.filename;
+    const fileUrl = "http://" + config.url().ip + ":" + config.url().port.toString() +
+                    "/contents/" + fileName;
+
+    let email_id;
+    let email_domain;
+    if (email != undefined){
+        email_id = email.split("@")[0];
+        email_domain = email.split("@")[1];
+    }
+
+
+    const conn = await pool.getConnection();
+
+    const query = `insert into user (user_id, \
+                                    password, \
+                                    nick_name, \
+                                    first_name, \
+                                    last_name,
+                                    image_url,
+                                    image_name,
+                                    email_id,
+                                    email_domain) \
+                                    values( \
+                                        "${user_id}", \
+                                        password("${password}"), \
+                                        "${nick_name}", \
+                                        "${first_name}", \
+                                        "${last_name}",
+                                        "${fileUrl}",
+                                        "${fileName}",
+                                        "${email_id}",
+                                        "${email_domain}");`;
+    try {
+
+        await conn.beginTransaction();
+
+        if(user_id == undefined || password == undefined || nick_name == undefined
+            || first_name == undefined || last_name == undefined || email == undefined ) {
+                throw {name: 'undefinedBodyException', message: "Post User - user_info not exist"};
+        }
+
+        /*
+            특수문자 예외 처리 필요한 부분
+        */
+        
+        const result = await conn.query(query);
+        const rows = result[0];
+        
+        if (rows.affectedRows == 0)
+            throw "Exception : Cant Insert User";
+
+        await conn.commit();
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": true}'); 
+
+    } catch (error) {
+        console.log(error);
+        if (fileInfo != undefined) {
+            const filePath = fileInfo.path;
+            fs.access(filePath, fs.constants.F_OK, (err) =>{
+                if (err) console.log('Cant delete files');
+            });
+
+            fs.unlink(filePath, (err) => err ?
+            console.log(err) : console.log(`${filePath} is deleted !`));
+
+        }   
+
+        await conn.rollback();
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+    } finally {
+        conn.release();
+    }
+
+
+});
+
 router.post('/', async (req, res) => {
     
 
@@ -85,18 +233,29 @@ router.post('/', async (req, res) => {
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     //console.log(req.body);
-    const {user_id, password, nick_name, first_name, last_name} = req.body;
+    const {user_id, password, nick_name, first_name, last_name, email} = req.body;
+    let email_id;
+    let email_domain;
+    if (email != undefined){
+        email_id = email.split("@")[0];
+        email_domain = email.split("@")[1];
+    }
+    
     const query = `insert into user (user_id, \
                                     password, \
                                     nick_name, \
                                     first_name, \
-                                    last_name) \
+                                    last_name,  \
+                                    email_id,  \
+                                    email_domain) \
                                 values( \
                                     "${user_id}", \
                                     password("${password}"), \
                                     "${nick_name}", \
                                     "${first_name}", \
-                                    "${last_name}");`;
+                                    "${last_name}", \
+                                    "${email_id}", \
+                                    "${email_domain}");`;
     const conn = await pool.getConnection();
     try {
 
@@ -105,6 +264,12 @@ router.post('/', async (req, res) => {
         /*
             특수문자 예외 처리 필요한 부분
         */
+
+        if(user_id == undefined || password == undefined || nick_name == undefined
+            || first_name == undefined || last_name == undefined) {
+                throw {name: 'undefinedBodyException', message: "Post User - user_info not exist"};
+        }
+
 
         const result = await conn.query(query)
         const rows = result[0];

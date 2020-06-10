@@ -7,7 +7,8 @@ create table `user` (
     id int UNSIGNED NOT NULL AUTO_INCREMENT unique,
     user_id varchar(15) NOT NULL unique,
     password varchar(100) NOT NULL,
-    +email varchar(320) NOT NULL,
+    email_id varchar(64) NOT NULL,
+    email_domain varchar(255) NOT NULL,
     nick_name varchar(15) character set utf8 NOT NULL,
     first_name varchar(10) character set utf8 NOT NULL,
     last_name varchar(15) character set utf8 NOT NULL,
@@ -17,6 +18,7 @@ create table `user` (
     follow INT UNSIGNED DEFAULT 0 NOT NULL,
     image_url varchar(100) DEFAULT NULL,
     image_name varchar(25) DEFAULT NULL,
+    unique key(email_id, email_domain),
     primary key(id, user_id)
 );
 
@@ -24,7 +26,7 @@ create table `user` (
 // foreign key (current_row) references refer_table (refer_row)
 
 // user test
-// insert into user (user_id, password, nick_name, first_name, last_name) values('id1', password('123456'), 'nick', 'first', 'last');
+// insert into user (user_id, password, nick_name, first_name, last_name, email_id, email_domain) values('id1', password('123456'), 'nick', 'first', 'last', 'aa123', 'naver.com');
 ```
 
 - capsule
@@ -118,7 +120,7 @@ create table ``(
 // delimiter $$  : 문장의 끝을 $$로 구분 설정
 delimiter $$ 
 
-create procedure test() begin declare i int; set i = 0; while i < 17 do insert into user (user_id, password, nick_name, first_name, last_name, date_created, date_updated) values(concat('id',i), password('123456'), i, concat('first',i), concat('last', i), now(), now()); set i=i+1; end while; end $$
+create procedure test() begin declare i int; set i = 0; while i < 17 do insert into user (user_id, password, nick_name, first_name, last_name, date_created, date_updated, email_id, email_domain) values(concat('id',i), password('123456'), i, concat('first',i), concat('last', i), now(), now(), concat('email',i), 'gmail.com'); set i=i+1; end while; end $$
 
 delimiter ;
 
