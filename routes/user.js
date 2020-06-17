@@ -126,7 +126,7 @@ router.get('/:id', async (req, res) => {
 
         //rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(rows)); //json object로 변경
+        res.end(JSON.stringify(rows[0])); //json object로 변경
 
     } catch (e) {
         console.log(e);
@@ -302,8 +302,12 @@ router.post('/auth', async (req, res) =>{
     const query = `select user_id from user where user_id = "${req.body.user_id}" and password = password("${req.body.password}");`;   
     const conn = await pool.getConnection();
     try {
+        
+
         const result = await conn.query(query);
         const rows = result[0];
+        console.log(rows);
+    
         if (rows.length == 0)
             throw "Exception : Incorrect Id, Password";
 
@@ -339,6 +343,7 @@ router.put('/', async (req, res) => {
     const conn = await pool.getConnection();
     try {
         
+
         await conn.beginTransaction();
 
         const result = await conn.query(query);
@@ -379,8 +384,11 @@ router.delete('/:id', async (req, res) =>{
         if (rows.affectedRows == 0 )
             throw "Exception : Cant Delete User";
         
-        await conn.commit();
+        /*  select user image url and delete the image file */ 
 
+        /*  select user image url and delete the image file */ 
+
+        await conn.commit();
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": true}'); 
 
