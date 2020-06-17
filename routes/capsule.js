@@ -66,6 +66,7 @@ router.get('/', async (req, res) => {
     const query = "select capsule_id, \
                             user_id, \
                             title, \
+                            text, \
                             likes, \
                             views, \
                             date_created, \
@@ -78,9 +79,17 @@ router.get('/', async (req, res) => {
 
     try {
         const result = await conn.query(query); 
-        let rows = result[0];    
+        let rows = result[0];
+
         //rows.unshift({"success":true});
-        res.writeHead(404, {'Content-Type':'application/json'});
+        /*
+        rows.forEach( row =>{
+            let content = [];
+            content.push({content_id: null, url: null});
+            row.content = content;
+        })
+        */
+        res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows));
 
     } catch(e) {
@@ -101,7 +110,7 @@ router.get('/location', async (req, res) => {
     const {lng, lat} = req.query;
     const query = `select *, U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) as Dist \
                     from capsule \
-                    where U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) <= 50 \
+                    where U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) <= 0.01 \
                     order by Dist;`
     const conn = await pool.getConnection();
     console.log(lng,lat);
@@ -139,6 +148,7 @@ router.get('/user', async (req, res)=>{
     const query = `select cap.capsule_id, \
                             user_id, \
                             title, \
+                            text, \
                             likes, \
                             views, \
                             date_created, \
@@ -163,11 +173,12 @@ router.get('/user', async (req, res)=>{
         let i = 0;
         let content = [];
         let capsules = [];
-        let { capsule_id, user_id, title, likes, views, date_created, date_opened, status_temp, lat, lng } = rows[0];
+        let { capsule_id, user_id, title, text, likes, views, date_created, date_opened, status_temp, lat, lng } = rows[0];
         capsules.push({
             capsule_id,
             user_id,
             title,
+            text,
             likes,
             views,
             date_created,
@@ -196,6 +207,7 @@ router.get('/user', async (req, res)=>{
                         capsule_id: item.capsule_id,
                         user_id: item.user_id,
                         title: item.title,
+                        text: item.text,
                         likes: item.likes,
                         views: item.views,
                         date_created: item.date_created,
@@ -241,6 +253,7 @@ router.get('/:capsuleId', async (req, res) => {
     const query = `select cap.capsule_id, \
                                 user_id, \
                                 title, \
+                                text, \
                                 likes, \
                                 views, \
                                 date_created, \
@@ -257,6 +270,7 @@ router.get('/:capsuleId', async (req, res) => {
     const query_temp_capsule = `select capsule_id, \
                                         user_id, \
                                         title, \
+                                        text, \
                                         likes, \
                                         views, \
                                         date_created, \
@@ -285,7 +299,7 @@ router.get('/:capsuleId', async (req, res) => {
 
         if (rows.length != 0) {
             
-            const {capsule_id, user_id, title, likes, views, date_created, date_opened, status_temp, lat, lng} = rows[0];
+            const {capsule_id, user_id, title, text, likes, views, date_created, date_opened, status_temp, lat, lng} = rows[0];
             let content = [];
             rows.forEach( item => {
                 content.push({content_id: item.content_id, url: item.url});
@@ -295,6 +309,7 @@ router.get('/:capsuleId', async (req, res) => {
                 capsule_id,
                 user_id,
                 title,
+                text,
                 likes,
                 views,
                 date_created,
@@ -317,7 +332,7 @@ router.get('/:capsuleId', async (req, res) => {
 
         //console.log(resJson);
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(resJson));
+        res.end(JSON.stringify(resJson[0]));
 
         //console.log(temp);
         //resJson.unshift({"success":true});
@@ -346,6 +361,10 @@ router.post('/', async (req,res) => {
         if (req.body.user_id == undefined || req.body.lat == undefined || req.body.lng == undefined) {
             throw {name: 'undefinedBodyException', message: "Post Capsule - Capsule_info not exist "};
         }
+
+        if (req.body.lat > 90 || req.body.lat < -90 || req.body.lng > 180 || req.body.lng < -180)
+            throw{name: 'lat_lng_Exception', message: "Post Capsule - this lat, lng is not correct"};
+
         const query = `insert into capsule (user_id, status_temp, location) values('${req.body.user_id}',\
          true, point(${req.body.lng}, ${req.body.lat}));`
         console.log(query);
