@@ -91,13 +91,13 @@ create table `follow`(
 ```
 
 ```
-create table `like`(
+create table `likeCapsule`(
     id int UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id varchar(15) NOT NULL,
     capsule_id int UNSIGNED NOT NULL,
     unique key(user_id, capsule_id),
     primary key(id),
-    foreign key (capsule_id) references capsule (capsule_id) on delete cascade
+    foreign key (capsule_id) references capsule (capsule_id) on delete cascade,
     foreign key (user_id) references user (user_id) on delete cascade
 );
 ```

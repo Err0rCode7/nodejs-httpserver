@@ -62,7 +62,7 @@ const upload = multer({
 router.get('/', async (req, res) => {
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get User ):",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     
     const conn = await pool.getConnection();
@@ -101,7 +101,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get User/:id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const query = `select user_id, \
@@ -146,7 +146,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/with/image', upload.single("file") ,async (req, res) =>{
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Post User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     
     const fileInfo = req.file;
@@ -233,7 +233,7 @@ router.post('/with/image', upload.single("file") ,async (req, res) =>{
 router.post('/', async (req, res) => {
     
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Post User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     //console.log(req.body);
@@ -300,7 +300,7 @@ router.post('/', async (req, res) => {
 router.post('/auth', async (req, res) =>{
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Post Authorization ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const query = `select user_id from user where user_id = "${req.body.user_id}" and password = password("${req.body.password}");`;   
@@ -332,7 +332,7 @@ router.post('/auth', async (req, res) =>{
 router.put('/', async (req, res) => {
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Put User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const {password, nick_name, first_name, last_name, user_id} = req.body;
@@ -373,7 +373,7 @@ router.put('/', async (req, res) => {
 router.delete('/:id', async (req, res) =>{
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Delete User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const query = `delete from user \
