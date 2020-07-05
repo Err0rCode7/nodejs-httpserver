@@ -84,16 +84,21 @@ create table `follow`(
     user_id varchar(15) NOT NULL,
     dest_id varchar(15) NOT NULL,
     unique key(user_id, dest_id),
-    primary key(id)
-    
+    primary key(id),
+    foreign key (user_id) references user (user_id) on delete cascade,
+    foreign key (dest_id) references user (user_id) on delete cascade
 );
 ```
 
 ```
 create table `like`(
-    id, pk
-    user_id, fk
-    capsule_id, fk
+    id int UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id varchar(15) NOT NULL,
+    capsule_id int UNSIGNED NOT NULL,
+    unique key(user_id, capsule_id),
+    primary key(id),
+    foreign key (capsule_id) references capsule (capsule_id) on delete cascade
+    foreign key (user_id) references user (user_id) on delete cascade
 );
 ```
 

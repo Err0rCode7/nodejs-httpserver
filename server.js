@@ -13,6 +13,7 @@ const contentRouter = require('./routes/content.js');
 const userRouter = require('./routes/user.js');
 const capsuleRouter = require('./routes/capsule.js');
 const followRouter = require('./routes/follow.js');
+const likeRouter = require('./routes/like.js');
 //const videoRouter = require('./routes/video.js');
 
 
@@ -34,6 +35,7 @@ app.use('/contents', contentRouter);
 app.use('/users', userRouter);
 app.use('/capsules', capsuleRouter);
 app.use('/follow', followRouter);
+app.use('/like', likeRouter);
 //app.use('/videos', videoRouter);
 
 
