@@ -96,3 +96,64 @@
 
         });
         */
+
+
+update capsule set text = "당일치기로 제주도 먹방여행\n완전 먹기만해서 +3kg 한 날ㅋㅋㅋㅋ\n다음에 올때 뭐 먹었는지 캡슐에 킾~" where capsule_id = 21 ;
+update capsule set location = point(126.4931,33.5060) where capsule_id = 21 ;
+
+update capsule set location = point(128.5405,38.1478) where capsule_id = 20;
+update capsule set location = point(127.9378,37.3045) where capsule_id = 23;
+update capsule set location = point(126.9772,37.5382) where capsule_id = 24;
+update capsule set location = point(126.8066,35.1286) where capsule_id = 25;
+update capsule set location = point(127.1414,35.8016) where capsule_id = 26;
+update capsule set location = point(127.3996,36.3433) where capsule_id = 27;
+update capsule set location = point(127.5212,36.5843) where capsule_id = 28;
+update capsule set location = point(128.5706,35.8193) where capsule_id = 29;
+update capsule set location = point(129.2784,35.5031) where capsule_id = 30;
+update capsule set location = point(131.8694,37.2394) where capsule_id = 31;
+update capsule set location = point(127.7453,37.9139) where capsule_id = 32;
+update capsule set location = point(126.6801,37.4310) where capsule_id = 33;
+
+
+
+            android:process=":unityplayer"
+
+
+                buildTypes {
+        debug {
+            minifyEnabled false
+            useProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-unity.txt'
+            jniDebuggable true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+
+        buildTypes {
+        debug {
+            minifyEnabled false
+            useProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-unity.txt'
+            jniDebuggable true
+        }
+        release {
+            minifyEnabled false
+            useProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-unity.txt'
+            signingConfig signingConfigs.debug
+        }
+    }
+
+
+    E/Google Maps Android API: Authorization failure.  Please see https://developers.google.com/maps/documentation/android-api/start for how to correctly set up the map.
+D/EGL_emulation: eglMakeCurrent: 0xebf2f8c0: ver 2 0 (tinfo 0xebf591b0)
+E/Google Maps Android API: In the Google Developer Console (https://console.developers.google.com)
+    Ensure that the "Google Maps Android API v2" is enabled.
+    Ensure that the following Android Key exists:
+    	API Key: AIzaSyAGrJkq5uUVt6HCkO7FfBqj-M1nUlS1Omk
+    	Android Application (<cert_fingerprint>;<package_name>): 22:F3:A3:45:B5:5D:5D:52:93:7F:00:B3:F4:39:51:94:D9:DE:B6:E0;com.team11.capsule_time
+E/libprocessgroup: set_timerslack_ns write failed: Operation not permitted

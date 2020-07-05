@@ -10,7 +10,6 @@ const router = express.Router();
 const pool = mysql.createPool(config.db());
 
 
-
 function isImg(extension, callback){
     if ( extension == ".png" || extension == ".bmp" || extension == ".jpg" ||
     extension == ".jpeg" || extension == ".webp" || extension == ".gif" ) {
@@ -113,7 +112,8 @@ router.get('/location', async (req, res) => {
                     where U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) <= 0.01 \
                     order by Dist;`
     const conn = await pool.getConnection();
-    console.log(lng,lat);
+    console.log("/location", lng, lat);
+    //console.log(lng,lat);
     try {
 
         if (req.query.lng == undefined || req.query.lat == undefined)
@@ -246,7 +246,7 @@ router.get('/user', async (req, res)=>{
 });
 router.get('/:capsuleId', async (req, res) => { 
 
-
+    
     console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
@@ -367,6 +367,7 @@ router.post('/', async (req,res) => {
 
         const query = `insert into capsule (user_id, status_temp, location) values('${req.body.user_id}',\
          true, point(${req.body.lng}, ${req.body.lat}));`
+
         console.log(query);
         await conn.beginTransaction();
 

@@ -12,6 +12,7 @@ const config = require('./config/config.js');
 const contentRouter = require('./routes/content.js');
 const userRouter = require('./routes/user.js');
 const capsuleRouter = require('./routes/capsule.js');
+const followRouter = require('./routes/follow.js');
 //const videoRouter = require('./routes/video.js');
 
 
@@ -32,6 +33,7 @@ app.use(bodyParser.urlencoded({extended : true}));
 app.use('/contents', contentRouter);
 app.use('/users', userRouter);
 app.use('/capsules', capsuleRouter);
+app.use('/follow', followRouter);
 //app.use('/videos', videoRouter);
 
 

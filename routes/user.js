@@ -74,6 +74,8 @@ router.get('/', async (req, res) => {
                         email_domain, \
                         date_created, \
                         date_updated, \
+                        follow, \
+                        follower, \
                         image_url, \
                         image_name \
                     from user;`;
@@ -110,6 +112,8 @@ router.get('/:id', async (req, res) => {
                         email_domain,
                         date_created, \
                         date_updated, \
+                        follow, \
+                        follower, \
                         image_url, \
                         image_name \
                     from user \

@@ -79,10 +79,13 @@ create table `content`(
 ```
 
 ```
-create table `follower`(
-    id, pk
-    user_id, fk
-    follow_id, fk
+create table `follow`(
+    id int UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id varchar(15) NOT NULL,
+    dest_id varchar(15) NOT NULL,
+    unique key(user_id, dest_id),
+    primary key(id)
+    
 );
 ```
 
