@@ -8,7 +8,7 @@ const pool = mysql.createPool(config.db());
 
 router.post('/', async (req, res) => {
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Follow ) :",req.connection.remoteAddress.replace('::ffff:', ''));
 
     const {user_id, dest_id} = req.body;
 
@@ -38,15 +38,15 @@ router.post('/', async (req, res) => {
         const rowFollowing = resultFollowing[0];
         const rowFollowCreate = resultFollowCreate[0];
 
-        if (rowFollowed.length == 0){
+        if (rowFollowed.affectedRows == 0){
             throw "Follow Exception : Cant Find Dest_User";
         }
 
-        if (rowFollowing == 0){
+        if (rowFollowing.affectedRows == 0){
             throw "Follow Exception : Cant Find Src_User";
         }
 
-        if (rowFollowing == 0){
+        if (rowFollowCreate.affectedRows == 0){
             throw "Follow Exception : Cant Create Follow Row";
         }
         
@@ -70,13 +70,13 @@ router.post('/', async (req, res) => {
 
 router.post('/canceling', async (req, res) => {
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Follow canceling) :",req.connection.remoteAddress.replace('::ffff:', ''));
 
     const {user_id, dest_id} = req.body;
 
     const followedQuery = `update user set follower = follower - 1 where user_id = "${dest_id}";`;
     const followingQuery = `update user set follow = follow - 1 where user_id = "${user_id}";`;
-    const followCreateQuery = `delete from follow where user_id = '${user_id}' and dest_id = '${dest_id}';`;
+    const followDeleteQuery = `delete from follow where user_id = '${user_id}' and dest_id = '${dest_id}';`;
 
     const conn = await pool.getConnection();
 
@@ -94,19 +94,19 @@ router.post('/canceling', async (req, res) => {
 
         const resultFollowed = await conn.query(followedQuery);
         const resultFollowing = await conn.query(followingQuery);
-        const resultFollowCreate = await conn.query(followCreateQuery);
+        const resultFollowDelete = await conn.query(followDeleteQuery);
         
         const rowFollowed = resultFollowed[0];
         const rowFollowing = resultFollowing[0];
-        const rowFollowCreate = resultFollowCreate[0];
+        const rowFollowDelete = resultFollowDelete[0];
 
-        if (rowFollowed.length == 0){
+        if (rowFollowed.affectedRows == 0){
             throw "Follow Exception : Cant Find Dest_User";
         }
-        if (rowFollowing == 0){
+        if (rowFollowing.affectedRows == 0){
             throw "Follow Exception : Cant Find Src_User";
         }
-        if (rowFollowCreate == 0){
+        if (rowFollowDelete.affectedRows == 0){
             throw "Follow Exception : Cant Create Follow Row";
         }
 
