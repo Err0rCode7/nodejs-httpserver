@@ -60,7 +60,7 @@ const upload = multer({
 
 router.get('/', async (req, res) => {
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');    
     const query = "select capsule_id, \
                             user_id, \
@@ -103,7 +103,7 @@ router.get('/', async (req, res) => {
 
 router.get('/location', async (req, res) => {
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get Capsule within 100 meter ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const {lng, lat} = req.query;
@@ -140,7 +140,7 @@ router.get('/location', async (req, res) => {
 router.get('/user', async (req, res)=>{
     
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get Capsule with user_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const { user_id } = req.query;
@@ -247,7 +247,7 @@ router.get('/user', async (req, res)=>{
 router.get('/:capsuleId', async (req, res) => { 
 
     
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get a Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const query = `select cap.capsule_id, \
@@ -351,7 +351,7 @@ router.get('/:capsuleId', async (req, res) => {
 router.post('/', async (req,res) => {
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Post Temporal-Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const conn = await pool.getConnection();
@@ -402,7 +402,7 @@ router.post('/', async (req,res) => {
 router.put('/', upload.array("file"), async (req, res) => {
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Put Capsule with images ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const conn = await pool.getConnection();
@@ -540,7 +540,7 @@ router.put('/', upload.array("file"), async (req, res) => {
 router.delete('/:capsuleId', async (req,res) => {
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Delete Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const conn = await pool.getConnection();

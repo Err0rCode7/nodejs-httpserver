@@ -87,7 +87,7 @@ const upload = multer({
 router.get('/capsule-id/:capsuleId', async (req, res) => {
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get contents with capsuleId ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     console.log(req.params.capsuleId);
@@ -118,7 +118,7 @@ router.get('/capsule-id/:capsuleId', async (req, res) => {
 router.get('/:contentid', (req, res, next) => {
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get content with contentId ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     try{
@@ -183,7 +183,7 @@ router.get('/:contentid', (req, res, next) => {
 router.post('/', upload.array("file"), async (req, res) => {
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Post Content ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const conn = await pool.getConnection();
@@ -257,7 +257,7 @@ router.post('/', upload.array("file"), async (req, res) => {
 router.put('/', (req, res) =>{
 
 
-    console.log("request Ip :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Put Content ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     res.writeHead(404, {'Content-Type':'text/html'});
