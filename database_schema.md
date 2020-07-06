@@ -38,7 +38,7 @@ create table `capsule`(
     title varchar(100) character set utf8,
     likes INT UNSIGNED DEFAULT 0 NOT NULL,
     views INT UNSIGNED DEFAULT 0 NOT NULL,
-    text varchar(200) character set utf8,
+    text varchar(400) character set utf8,
     date_created TIMESTAMP DEFAULT now() NOT NULL,
     date_opened TIMESTAMP DEFAULT now() NOT NULL,
     status_temp boolean DEFAULT true NOT NULL,
@@ -92,7 +92,7 @@ create table `follow`(
 
 ```
 create table `likeCapsule`(
-    id int UNSIGNED NOT NULL AUTO_INCREMENT,
+    id int UNSIGNED NOT NULL,AUTO_INCREMENT,
     user_id varchar(15) NOT NULL,
     capsule_id int UNSIGNED NOT NULL,
     unique key(user_id, capsule_id),
@@ -104,7 +104,15 @@ create table `likeCapsule`(
 
 ```
 create table `comment`(
-
+    id int UNSIGNED NOT NULL,
+    user_id varchar(15) NOT NULL,
+    capsule_id int UNSIGNED NOT NULL,
+    comment varchar(400) character set utf8,
+    reply_flag boolean DEFAULT true NOT NULL,
+    date_created TIMESTAMP DEFAULT now() NOT NULL,
+    primary key(id),
+    foreign key (capsule_id) references capsule (capsule_id) on delete cascade,
+    foreign key (user_id) references user (user_id) on delete cascade
 );
 ```
 
