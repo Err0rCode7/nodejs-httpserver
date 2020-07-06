@@ -8,7 +8,7 @@ const pool = mysql.createPool(config.db());
 
 router.post('/', async (req, res) => {
 
-    console.log("request Ip ( like ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Post likeCapsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
 
     const {capsule_id, user_id} = req.body;
 
@@ -59,7 +59,7 @@ router.post('/', async (req, res) => {
 
 router.post('/canceling', async (req, res) => {
 
-    console.log("request Ip ( like canceling ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Post likeCapsule canceling ) :",req.connection.remoteAddress.replace('::ffff:', ''));
 
     const {capsule_id, user_id} = req.body;
 
