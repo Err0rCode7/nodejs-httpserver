@@ -57,7 +57,7 @@ router.post('/', async (req, res) => {
 
     } catch (e) {
         console.log(e)
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
 
     } finally {
@@ -117,7 +117,7 @@ router.post('/canceling', async (req, res) => {
 
     } catch (e) {
         console.log(e)
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
 
     } finally {
