@@ -74,9 +74,12 @@ router.get('/', async (req, res) => {
                             y(location) as lat, x(location) as lng \
                             from capsule";
 
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
+
         const result = await conn.query(query); 
         let rows = result[0];
 
@@ -111,10 +114,14 @@ router.get('/location', async (req, res) => {
                     from capsule \
                     where U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) <= 0.01 \
                     order by Dist;`
-    const conn = await pool.getConnection();
+    
+    let conn;
+
     console.log("/location", lng, lat);
     //console.log(lng,lat);
     try {
+
+        conn = await pool.getConnection();
 
         if (req.query.lng == undefined || req.query.lat == undefined)
             throw " Get-Query-Exception : need lng, lat ";
@@ -144,7 +151,7 @@ router.get('/user', async (req, res)=>{
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const { user_id } = req.query;
-    const conn = await pool.getConnection();
+    let conn;
     const query = `select cap.capsule_id, \
                             user_id, \
                             title, \
@@ -164,6 +171,8 @@ router.get('/user', async (req, res)=>{
                         ORDER BY capsule_id DESC;`;
 
     try {
+
+        conn = await pool.getConnection();
         
         const result = await conn.query(query);
         let rows = result[0];
@@ -281,9 +290,11 @@ router.get('/:capsuleId', async (req, res) => {
                                         where capsule_id = ${req.params.capsuleId} AND \
                                             status_temp = 1;`;
 
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
 
         if (req.params.capsuleId == undefined)
             throw "Get-URL-Capsule Exception - need capsuleId"
@@ -354,9 +365,11 @@ router.post('/', async (req,res) => {
     console.log("request Ip ( Post Temporal-Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
         
         if (req.body.user_id == undefined || req.body.lat == undefined || req.body.lng == undefined) {
             throw {name: 'undefinedBodyException', message: "Post Capsule - Capsule_info not exist "};
@@ -405,7 +418,7 @@ router.put('/', upload.array("file"), async (req, res) => {
     console.log("request Ip ( Put Capsule with images ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const conn = await pool.getConnection();
+    let conn;
     
     const filesInfo = req.files
     const capsule_id = req.body.capsule_id;
@@ -421,6 +434,8 @@ router.put('/', upload.array("file"), async (req, res) => {
 
     console.log(filesInfo);
     try {
+
+        conn = await pool.getConnection();
         //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
 
@@ -509,25 +524,6 @@ router.put('/', upload.array("file"), async (req, res) => {
         });
 
         console.log(e.message);
-        /*
-        if (e.name == 'putCapsuleNotUpdateException') {
-            console.log(e.message);
-        } else if (e.name == 'putCapsuleNotInsertException') {
-            // delete inserted contents
-            // return updated capsules
-            console.log(e.message);
-        } else if (e.name == 'sqlUpdateError') {
-            console.log(e.message);
-        } else if  (e.name == 'sqlInsertError') {
-            console.log(e.message);
-            // delete inserted contents
-            // return updated capsules
-        } else if (e.name == 'undefinedBodyException') {
-            console.log(e.message);
-        } else {
-            console.log(e.message);
-        }
-        */
 
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end('{"success": false}');
@@ -537,15 +533,19 @@ router.put('/', upload.array("file"), async (req, res) => {
 
 });
 
+
 router.delete('/:capsuleId', async (req,res) => {
 
 
     console.log("request Ip ( Delete Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
+
         const capsule_id = req.params.capsuleId;
 
         selectQuery = `select content_name from content where capsule_id = ${capsule_id}; `;

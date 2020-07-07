@@ -91,12 +91,15 @@ router.get('/capsule-id/:capsuleId', async (req, res) => {
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     console.log(req.params.capsuleId);
-    const conn = await pool.getConnection();
+    let conn;
 
     const capsuleId = req.params.capsuleId;
     const query = `select * from content where capsule_id = ${capsuleId};`;
 
     try {
+
+        conn = await pool.getConnection();
+
         const result = await conn.query(query);
         let rows = result[0];
         rows.unshift({"success":true});
@@ -186,9 +189,12 @@ router.post('/', upload.array("file"), async (req, res) => {
     console.log("request Ip ( Post Content ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const conn = await pool.getConnection();
+    let conn;
 
     try{
+
+        conn = await pool.getConnection();
+
         //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
 
@@ -272,9 +278,11 @@ router.delete('/:contentName', async (req, res) =>{
     
     const content_name = req.params.contentName;
     const query = `delete from content where content_name = '${content_name}';`;    
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
 
         let filePath = '';
         if (isImg(path.extname(content_name), result =>{

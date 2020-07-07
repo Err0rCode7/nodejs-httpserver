@@ -16,9 +16,11 @@ router.post('/', async (req, res) => {
     const followingQuery = `update user set follow = follow + 1 where user_id = "${user_id}";`;
     const followCreateQuery = `insert into follow (user_id, dest_id) values('${user_id}', '${dest_id}');`;
     
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
 
         if (user_id == undefined || dest_id == undefined) {
             throw "Follow Exception : Undefined Request Body";
@@ -57,6 +59,7 @@ router.post('/', async (req, res) => {
 
     } catch (e) {
         console.log(e)
+        await conn.rollback();
         res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
 
@@ -78,9 +81,11 @@ router.post('/canceling', async (req, res) => {
     const followingQuery = `update user set follow = follow - 1 where user_id = "${user_id}";`;
     const followDeleteQuery = `delete from follow where user_id = '${user_id}' and dest_id = '${dest_id}';`;
 
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+        
+        conn = await pool.getConnection();
 
         if (user_id == undefined || dest_id == undefined) {
             throw "Follow Exception : Undefined Request Body";
@@ -116,7 +121,8 @@ router.post('/canceling', async (req, res) => {
         res.end('{"success": true}');
 
     } catch (e) {
-        console.log(e)
+        console.log(e);
+        await conn.rollback();
         res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
 

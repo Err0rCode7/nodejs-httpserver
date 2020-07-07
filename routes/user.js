@@ -65,7 +65,8 @@ router.get('/', async (req, res) => {
     console.log("request Ip ( Get User ):",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     
-    const conn = await pool.getConnection();
+    let conn;
+
     const query = `select user_id, \
                         nick_name, \
                         first_name, \
@@ -80,6 +81,9 @@ router.get('/', async (req, res) => {
                         image_name \
                     from user;`;
     try {
+
+        conn = await pool.getConnection();
+
         const result = await conn.query(query);
         let rows = result[0];
 
@@ -119,8 +123,12 @@ router.get('/:id', async (req, res) => {
                     from user \
                     where user_id = "${req.params.id}";`;
 
-    const conn = await pool.getConnection();
+    let conn;
+
     try {
+
+        conn = await pool.getConnection();
+
         const result = await conn.query(query);
         let rows = result[0];
 
@@ -163,7 +171,7 @@ router.post('/with/image', upload.single("file") ,async (req, res) =>{
     }
 
 
-    const conn = await pool.getConnection();
+    let conn;
 
     const query = `insert into user (user_id, \
                                     password, \
@@ -185,6 +193,8 @@ router.post('/with/image', upload.single("file") ,async (req, res) =>{
                                         "${email_id}",
                                         "${email_domain}");`;
     try {
+
+        conn = await pool.getConnection();
 
         await conn.beginTransaction();
 
@@ -260,8 +270,12 @@ router.post('/', async (req, res) => {
                                     "${last_name}", \
                                     "${email_id}", \
                                     "${email_domain}");`;
-    const conn = await pool.getConnection();
+    
+    let conn;                                
+    
     try {
+
+        conn = await pool.getConnection();
 
         await conn.beginTransaction();
 
@@ -304,9 +318,11 @@ router.post('/auth', async (req, res) =>{
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const query = `select user_id from user where user_id = "${req.body.user_id}" and password = password("${req.body.password}");`;   
-    const conn = await pool.getConnection();
+    let conn;
+
     try {
         
+        conn = await pool.getConnection();
 
         const result = await conn.query(query);
         const rows = result[0];
@@ -344,9 +360,11 @@ router.put('/', async (req, res) => {
     date_updated = now() \
     where user_id = "${user_id}";`;
 
-    const conn = await pool.getConnection();
+    let conn;
+
     try {
-        
+    
+        conn = await pool.getConnection();
 
         await conn.beginTransaction();
 
@@ -378,8 +396,12 @@ router.delete('/:id', async (req, res) =>{
 
     const query = `delete from user \
                     where user_id="${req.params.id}"`;
-    const conn = await pool.getConnection();
+    
+    let conn;
+
     try {
+
+        conn = await pool.getConnection();
 
         await conn.beginTransaction();
 

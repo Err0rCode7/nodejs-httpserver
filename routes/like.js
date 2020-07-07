@@ -15,9 +15,11 @@ router.post('/', async (req, res) => {
     const likeQuery = `update capsule set likes = likes + 1 where capsule_id = ${capsule_id};`;
     const likeCreateQuery = `insert into likeCapsule (user_id, capsule_id) values('${user_id}', ${capsule_id});`;
     
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
 
         if (user_id == undefined || capsule_id == undefined) {
             throw "Follow Exception : Undefined Request Body";
@@ -46,6 +48,7 @@ router.post('/', async (req, res) => {
 
     } catch (e) {
         console.log(e)
+        await conn.rollback();
         res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
 
@@ -66,9 +69,11 @@ router.post('/canceling', async (req, res) => {
     const likeQuery = `update capsule set likes = likes - 1 where capsule_id = ${capsule_id};`;
     const likeDeleteQuery = `delete from likeCapsule where user_id = '${user_id}' and capsule_id = ${capsule_id};`;
     
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
 
         if (user_id == undefined || capsule_id == undefined) {
             throw "Follow Exception : Undefined Request Body";
@@ -98,6 +103,7 @@ router.post('/canceling', async (req, res) => {
 
     } catch (e) {
         console.log(e)
+        await conn.rollback();
         res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
 

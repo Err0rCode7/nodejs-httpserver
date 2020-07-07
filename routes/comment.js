@@ -15,9 +15,11 @@ router.post('/', async (req, res) => {
     const createCommentQuery = `insert into comment (user_id, capsule_id, comment, reply_flag, date_created ) \
                                 values('${user_id}', ${capsule_id}, '${comment}', ${reply_flag}, now());`;
     
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
 
         if (user_id == undefined || capsule_id == undefined || comment == undefined || reply_flag == undefined) {
             throw "Comment Exception : Undefined Request Body";
@@ -44,6 +46,8 @@ router.post('/', async (req, res) => {
 
     } catch (e) {
         console.log(e)
+
+        await conn.rollback();
         res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
 
@@ -62,9 +66,11 @@ router.post('/deleting', async (req, res) => {
     const {user_id, comment_id} = req.body;
     const deleteCommnetQuery = `delete comment where user_id = '${user_id}' and comment_id = ${comment_id};`;
 
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+
+        conn = await pool.getConnection();
 
         if (user_id == undefined || capsule_id == undefined || comment == undefined || reply_flag == undefined) {
             throw "Comment Exception : Undefined Request Body";
@@ -87,6 +93,8 @@ router.post('/deleting', async (req, res) => {
     } catch (e) {
 
         console.log(e)
+
+        await conn.rollback();
         res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
 
