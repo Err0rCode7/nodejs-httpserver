@@ -365,21 +365,23 @@ router.post('/', async (req,res) => {
     console.log("request Ip ( Post Temporal-Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
+    const { user_id, lat, lng } =req.body; 
+
     let conn;
 
     try {
 
         conn = await pool.getConnection();
         
-        if (req.body.user_id == undefined || req.body.lat == undefined || req.body.lng == undefined) {
+        if (user_id == undefined || lat == undefined || lng == undefined) {
             throw {name: 'undefinedBodyException', message: "Post Capsule - Capsule_info not exist "};
         }
 
-        if (req.body.lat > 90 || req.body.lat < -90 || req.body.lng > 180 || req.body.lng < -180)
+        if (lat > 90 || lat < -90 || lng > 180 || lng < -180)
             throw{name: 'lat_lng_Exception', message: "Post Capsule - this lat, lng is not correct"};
 
-        const query = `insert into capsule (user_id, status_temp, location) values('${req.body.user_id}',\
-         true, point(${req.body.lng}, ${req.body.lat}));`
+        const query = `insert into capsule (user_id, status_temp, location) values('${user_id}',\
+         true, point(${lng}, ${lat}));`
 
         console.log(query);
         await conn.beginTransaction();
@@ -412,7 +414,7 @@ router.post('/', async (req,res) => {
 });
 
 // Capsule 저장
-router.put('/', upload.array("file"), async (req, res) => {
+router.put('/with/images', upload.array("file"), async (req, res) => {
 
 
     console.log("request Ip ( Put Capsule with images ) :",req.connection.remoteAddress.replace('::ffff:', ''));
@@ -482,7 +484,8 @@ router.put('/', upload.array("file"), async (req, res) => {
                                 value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}'); `
         
         insertQuerys = insertQuerys + insertQuery;
-    });
+
+        });
         // DB Transaction Start
         await conn.beginTransaction();
         const updResult = await conn.query(updateQuery);
@@ -533,6 +536,78 @@ router.put('/', upload.array("file"), async (req, res) => {
 
 });
 
+router.put('/', async (req, res) => {
+
+    console.log("request Ip ( Put Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    let conn;
+    
+    const {capsule_id, text} = req.body;
+    let title = req.body.title;
+
+    const status_temp = 0;
+    
+    // mysql ' " exception control
+    title = title.replace("'","\\'").replace('"','\\"');
+
+    let textQuery = null;
+    if (text != undefined)
+        textQuery = '\'' + text + '\'';
+
+    try {
+
+        conn = await pool.getConnection();
+
+        //console.log(req.files[0]);
+        //console.log(req.body.capsule_id);
+
+        if (capsule_id == undefined || title == undefined ) {
+            throw {name: 'undefinedBodyException', message: "Put Capsule - Capsule_info not exist"};
+        }
+
+        
+
+        const updateQuery = `update capsule SET \
+                                title = '${title}', \
+                                status_temp = ${status_temp}, \
+                                text = ${textQuery} \
+                                where capsule_id = ${capsule_id} AND \
+                                status_temp = 1`;
+
+        /*
+        const capsule = {
+            user_id,
+            title,
+            text,
+            status_temp
+        }
+        */
+
+        // DB Transaction Start
+        await conn.beginTransaction();
+        const updResult = await conn.query(updateQuery);
+
+        if (updResult[0].affectedRows == 0)
+            throw {name: 'putCapsuleNotUpdateException', message: "Put Capsule-Not-Update Error"};
+        
+        await conn.commit();
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": true}');
+
+    } catch (e) {
+
+        await conn.rollback();
+        console.log(e.message);
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+
+});
 
 router.delete('/:capsuleId', async (req,res) => {
 
