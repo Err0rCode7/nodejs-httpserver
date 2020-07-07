@@ -129,3 +129,66 @@ Develope http-streaming-server
 
         ![image](https://user-images.githubusercontent.com/48249549/83627271-9d0f6080-a5d1-11ea-827e-0ab18e894249.png)
 
+## Completed - 3
+( 2020/7/5 ~ 2020/7/7 )
+
+---
+- follow
+
+    - Post/ `./follow/`
+        - user's follow is added 1
+        - dest's follwer is added 1
+        - create a row of follow table in DB
+    - Success Response : Header with Code 200
+    - Fail Response : Header with Code 404
+
+    ```json
+    {
+        "user_id": __,
+        "dest_id": __,
+    }
+    ```
+
+    - Post/ `./follow/canceling/`
+        - user's follow is subtracted 1
+        - dest's follower is subtracted 1
+        - delete a row of follow table in DB
+    - Success Response : Header with Code 200
+    - Fail Response : Header with Code 404
+
+    ```json
+    {
+        "user_id": "__",
+        "dest_id": "__",
+    }
+    ```
+
+- like
+
+    - Post/ `./like/`
+        - like of the capsule of user is added 1
+        - create a row of like table in DB
+    - Success Response : Header with Code 200
+    - Fail Response : Header with Code 404
+    
+    ```json
+    {
+        "capsule_id" : __,
+        "user_id" : "__" 
+    }
+
+    ```
+    - Post/ `./like/canceling/`
+        - like of the capsule of user is subtracted 1
+        - delete a row of like table in DB
+    - Success Response : Header with Code 200
+    - Fail Response : Header with Code 404
+    
+    ```json
+    {
+        "capsule_id" : __,
+        "user_id" : "__" 
+    }
+    ```
+
+
