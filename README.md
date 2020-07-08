@@ -248,7 +248,7 @@ http://address:port/like?capsule_id=__&nick_name="__"
 ```
 
 ## Completed - 4
-( 2020/7/8 ~ 2020/7/8 )
+( 2020/7/8 ~ 2020/7/9 )
 
 ---
 
@@ -343,7 +343,7 @@ http://address:port/follow/followerlist/"Input the Nick"
 #### Request Form Sample
     
 ```
-http://address:port/capsule/"Input the Nick"
+http://address:port/capsule/nick/"Input the Nick"
 ```
 
 #### Response Form Sample
@@ -406,7 +406,7 @@ http://address:port/capsule/"Input the Nick"
 
 #### Request Form Sample
 ```
-http://address:port/capsule/"Input the Capsule Id"
+http://address:port/comment/list/"Input the Capsule Id"
 ```
 
 #### Response Form Sample
@@ -488,7 +488,28 @@ http://address:port/capsule/"Input the Capsule Id"
 #### Request Form Sample
     
 ```json
-http://address:port/capsule/"Input the Comment ID"
+http://address:port/comment/"Input the Comment ID"
+```
+
+#### Response Form Sample
+```json
+{
+   "success": true
+}
+```
+
+#### Delete Reply
+    
+- Delete/ `./comment/reply/:id`
+    - Delete a Reply
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+http://address:port/comment/reply/"Input the Comment ID"
 ```
 
 #### Response Form Sample
