@@ -130,65 +130,125 @@ Develope http-streaming-server
         ![image](https://user-images.githubusercontent.com/48249549/83627271-9d0f6080-a5d1-11ea-827e-0ab18e894249.png)
 
 ## Completed - 3
-( 2020/7/5 ~ 2020/7/7 )
+( 2020/7/5 ~ 2020/7/8 )
 
 ---
-- follow
 
-    - Post/ `./follow/`
-        - user's follow is added 1
-        - dest's follwer is added 1
-        - create a row of follow table in DB
-    - Success Response : Header with Code 200
-    - Fail Response : Header with Code 404
+## Follow
 
-    ```json
-    {
-        "user_id": __,
-        "dest_id": __,
-    }
-    ```
-
-    - Post/ `./follow/canceling/`
-        - user's follow is subtracted 1
-        - dest's follower is subtracted 1
-        - delete a row of follow table in DB
-    - Success Response : Header with Code 200
-    - Fail Response : Header with Code 404
-
-    ```json
-    {
-        "user_id": "__",
-        "dest_id": "__",
-    }
-    ```
-
-- like
-
-    - Post/ `./like/`
-        - like of the capsule of user is added 1
-        - create a row of like table in DB
-    - Success Response : Header with Code 200
-    - Fail Response : Header with Code 404
+#### Post Follow
     
-    ```json
-    {
-        "capsule_id" : __,
-        "user_id" : "__" 
-    }
+- Post/ `./follow/`
+    - user's follow is added 1
+    - dest's follwer is added 1
+    - create a row of follow table in DB
 
-    ```
-    - Post/ `./like/canceling/`
-        - like of the capsule of user is subtracted 1
-        - delete a row of like table in DB
-    - Success Response : Header with Code 200
-    - Fail Response : Header with Code 404
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
     
-    ```json
-    {
-        "capsule_id" : __,
-        "user_id" : "__" 
-    }
-    ```
+```json
+{
+    "nick_name" : "__",
+    "dest_nick_name" : "__" 
+}
+```
 
+#### Response Form Sample
+```json
+    [
+        {
+        nick_name: "nick11",
+        first_name: "민성",
+        last_name: "박",
+        date_created: "2020-06-14T19:17:46.000Z",
+        date_updated: "2020-06-14T19:17:46.000Z",
+        follow: 1,
+        follower: 0,
+        image_url: "http://118.44.168.218:7070/contents/1592162266492.jpg",
+        image_name: "1592162266492.jpg"
+        },
 
+        {
+            ...
+        },
+
+        {
+            ...
+        }
+    ]
+```
+#### Post Follow Canceling
+
+- Post/ `./follow/canceling/`
+    - user's follow is subtracted 1
+    - dest's follower is subtracted 1
+    - delete a row of follow table in DB 
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+```json
+{
+    "nick_name": "__",
+    "dest_nick_name": "__",
+}
+```
+
+#### Response Form Sample
+```json
+{
+   "success": true
+}
+```
+
+## Post Like
+
+- Post/ `./like/` 
+    - like of the capsule of user is added 1
+    - create a row of like table in DB 
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+    
+### Request Form sample
+```json
+{
+    "capsule_id" : __,
+    "nick_name" : "__" 
+}
+```
+### Response Form sample
+
+```json
+{
+   "success": true
+}
+```
+
+## Post Like
+    
+- Post/ `./like/canceling/`
+    - like of the capsule of user is subtracted 1
+    - delete a row of like table in DB 
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+    
+### Request Form sample
+```json
+{
+    "capsule_id" : __,
+    "nick_name" : "__" 
+}
+```
+
+### Response Form sample
+
+```json
+{
+   "success": true
+}
+```
