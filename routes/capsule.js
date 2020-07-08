@@ -64,6 +64,7 @@ router.get('/', async (req, res) => {
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');    
     const query = "select capsule_id, \
                             user_id, \
+                            nick_name, \
                             title, \
                             text, \
                             likes, \
@@ -144,16 +145,17 @@ router.get('/location', async (req, res) => {
         conn.release();
     }
 });
-router.get('/user', async (req, res)=>{
+router.get('/nick/:nickName', async (req, res)=>{
     
 
-    console.log("request Ip ( Get Capsule with user_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get Capsules with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const { user_id } = req.query;
+    const nick_name = req.params.nickName;
     let conn;
     const query = `select cap.capsule_id, \
                             user_id, \
+                            nick_name, \
                             title, \
                             text, \
                             likes, \
@@ -167,7 +169,7 @@ router.get('/user', async (req, res)=>{
                         from capsule as cap \
                         LEFT JOIN content as ct \
                         ON cap.capsule_id = ct.capsule_id \
-                        where cap.user_id = '${user_id}' \
+                        where cap.nick_name = '${nick_name}' \
                         ORDER BY capsule_id DESC;`;
 
     try {
@@ -175,74 +177,84 @@ router.get('/user', async (req, res)=>{
         conn = await pool.getConnection();
         
         const result = await conn.query(query);
+
         let rows = result[0];
-        if (rows.length == 0)
-            throw "Exception : Cant Find Capsule with this user_id";
-        let index = 0;
-        let i = 0;
-        let content = [];
-        let capsules = [];
-        let { capsule_id, user_id, title, text, likes, views, date_created, date_opened, status_temp, lat, lng } = rows[0];
-        capsules.push({
-            capsule_id,
-            user_id,
-            title,
-            text,
-            likes,
-            views,
-            date_created,
-            date_opened,
-            status_temp,
-            lat,
-            lng,
-            content:null
-        })
-        rows.forEach( item => {
-            if (item != undefined) {
-                if (item.capsule_id == capsules[index].capsule_id ) {
-                    content.push({
-                        content_id: item.content_id,
-                        url: item.url
-                    });
-                    if (rows.length - 1  == i) {
+        
+        if (rows.length == 0) {
+
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify([]));
+
+        } else {
+
+            let index = 0;
+            let i = 0;
+            let content = [];
+            let capsules = [];
+            let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened, status_temp, lat, lng } = rows[0];
+            capsules.push({
+                capsule_id,
+                user_id,
+                nick_name,
+                title,
+                text,
+                likes,
+                views,
+                date_created,
+                date_opened,
+                status_temp,
+                lat,
+                lng,
+                content:null
+            })
+            rows.forEach( item => {
+                if (item != undefined) {
+                    if (item.capsule_id == capsules[index].capsule_id ) {
+                        content.push({
+                            content_id: item.content_id,
+                            url: item.url
+                        });
+                        if (rows.length - 1  == i) {
+                            capsules[index].content = content;
+                        }
+                    } else {
                         capsules[index].content = content;
-                    }
-                } else {
-                    capsules[index].content = content;
-                    index = index + 1;
-                    content = [];
-
-                    capsules[index] = {
-                        capsule_id: item.capsule_id,
-                        user_id: item.user_id,
-                        title: item.title,
-                        text: item.text,
-                        likes: item.likes,
-                        views: item.views,
-                        date_created: item.date_created,
-                        date_opened: item.date_opened,
-                        status_temp: item.status_temp,
-                        lat: item.lat,
-                        lng: item.lng,
-                        content:null
-                    }
-
-                    content.push({
-                        content_id: item.content_id,
-                        url: item.url
-                    });
-
-                    if (rows.length - 1  == i) {
-                        capsules[index].content = content;
+                        index = index + 1;
+                        content = [];
+    
+                        capsules[index] = {
+                            capsule_id: item.capsule_id,
+                            user_id: item.user_id,
+                            nick_name: item.nick_name,
+                            title: item.title,
+                            text: item.text,
+                            likes: item.likes,
+                            views: item.views,
+                            date_created: item.date_created,
+                            date_opened: item.date_opened,
+                            status_temp: item.status_temp,
+                            lat: item.lat,
+                            lng: item.lng,
+                            content:null
+                        }
+    
+                        content.push({
+                            content_id: item.content_id,
+                            url: item.url
+                        });
+    
+                        if (rows.length - 1  == i) {
+                            capsules[index].content = content;
+                        }
                     }
                 }
-            }
-            i = i + 1;
-        });
+                i = i + 1;
+            });
+                    //capsules.unshift({"success":true});
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify(capsules));
+        }
 
-        //capsules.unshift({"success":true});
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(capsules));
     } catch (e) {
         console.log(e);
 
@@ -334,7 +346,7 @@ router.get('/:capsuleId', async (req, res) => {
         } 
         
         if (rows_temp != 0) {
-            console.log(rows_temp);
+            //console.log(rows_temp);
             rows_temp.forEach( tempCapsule => {
                 rows_temp[0].content = null;
                 resJson.push(tempCapsule);
@@ -383,11 +395,11 @@ router.post('/', async (req,res) => {
         const query = `insert into capsule (user_id, status_temp, location) values('${user_id}',\
          true, point(${lng}, ${lat}));`
 
-        console.log(query);
+        //console.log(query);
         await conn.beginTransaction();
 
         const insResult = await conn.query(query);
-        console.log(insResult);
+        //console.log(insResult);
         if (insResult[0].affectedRows == 0 )
             throw {name: 'insertNotCapsuleException', message: 'Post-Insert Not Capsule Exception'};
 
@@ -434,7 +446,7 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
     if (text != undefined)
     textQuery = '\'' + text + '\'';
 
-    console.log(filesInfo);
+    //console.log(filesInfo);
     try {
 
         conn = await pool.getConnection();
