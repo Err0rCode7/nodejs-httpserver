@@ -102,6 +102,55 @@ router.get('/', async (req, res) => {
 
 });
 
+router.get('/nick/:nick_name', async (req, res) => {
+
+
+    console.log("request Ip ( Get User/nick/:nick_name ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    const query = `select user_id, \
+                        nick_name, \
+                        first_name, \
+                        last_name, \
+                        email_id, \
+                        email_domain,
+                        date_created, \
+                        date_updated, \
+                        follow, \
+                        follower, \
+                        image_url, \
+                        image_name \
+                    from user \
+                    where user_id = "${req.params.nick_name}";`;
+
+    let conn;
+
+    try {
+
+        conn = await pool.getConnection();
+
+        const result = await conn.query(query);
+        let rows = result[0];
+
+        if (rows.length == 0){
+            throw "Exception : Cant Find User";
+        }
+
+        //rows.unshift({"success":true});
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify(rows[0])); //json object로 변경
+
+    } catch (e) {
+        console.log(e);
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end();
+        //res.end('{"success": false}'); 
+    } finally {
+        conn.release();
+    }
+    
+});
+
 router.get('/:id', async (req, res) => {
 
 
@@ -150,7 +199,7 @@ router.get('/:id', async (req, res) => {
     }
     
 });
-//register
+
 
 router.post('/with/image', upload.single("file") ,async (req, res) =>{
 
@@ -336,7 +385,7 @@ router.post('/auth', async (req, res) =>{
 
     } catch(e) {
         console.log(e);
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}'); 
 
     } finally {
