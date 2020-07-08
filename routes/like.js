@@ -10,10 +10,10 @@ router.post('/', async (req, res) => {
 
     console.log("request Ip ( Post likeCapsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
 
-    const {capsule_id, user_id} = req.body;
+    const {capsule_id, nick_name} = req.body;
 
     const likeQuery = `update capsule set likes = likes + 1 where capsule_id = ${capsule_id};`;
-    const likeCreateQuery = `insert into likeCapsule (user_id, capsule_id) values('${user_id}', ${capsule_id});`;
+    const likeCreateQuery = `insert into likeCapsule (nick_name, capsule_id) values('${nick_name}', ${capsule_id});`;
     
     let conn;
 
@@ -21,7 +21,7 @@ router.post('/', async (req, res) => {
 
         conn = await pool.getConnection();
 
-        if (user_id == undefined || capsule_id == undefined) {
+        if (nick_name == undefined || capsule_id == undefined) {
             throw "Follow Exception : Undefined Request Body";
         }
 
@@ -60,14 +60,13 @@ router.post('/', async (req, res) => {
 
 });
 
-router.post('/canceling', async (req, res) => {
+router.delete('', async (req, res) => {
 
     console.log("request Ip ( Post likeCapsule canceling ) :",req.connection.remoteAddress.replace('::ffff:', ''));
-
-    const {capsule_id, user_id} = req.body;
+    const {capsule_id, nick_name} = req.query;
 
     const likeQuery = `update capsule set likes = likes - 1 where capsule_id = ${capsule_id};`;
-    const likeDeleteQuery = `delete from likeCapsule where user_id = '${user_id}' and capsule_id = ${capsule_id};`;
+    const likeDeleteQuery = `delete from likeCapsule where nick_name = '${nick_name}' and capsule_id = ${capsule_id};`;
     
     let conn;
 
@@ -75,7 +74,7 @@ router.post('/canceling', async (req, res) => {
 
         conn = await pool.getConnection();
 
-        if (user_id == undefined || capsule_id == undefined) {
+        if (nick_name == undefined || capsule_id == undefined) {
             throw "Follow Exception : Undefined Request Body";
         }
 
