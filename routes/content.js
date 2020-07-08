@@ -139,8 +139,8 @@ router.get('/:contentid', (req, res, next) => {
             contentPath = './public/videos/'+contentId;
         }
         const contentMime = mime.getType(contentPath);
-        console.log('contentPath: '+ contentPath);
-        console.log('contentMime: '+ contentMime);
+        //console.log('contentPath: '+ contentPath);
+        //console.log('contentMime: '+ contentMime);
 
         /*
         // Send readFile 동기식
@@ -158,10 +158,10 @@ router.get('/:contentid', (req, res, next) => {
         */
 
         const stream = fs.createReadStream(contentPath);
-        let count = 0;
+        //let count = 0;
         stream.on('data', (data) => {
             
-            console.log('content data count= '+ (count = count+1));
+            //console.log('content data count= '+ (count = count+1));
             res.write(data);
         });
         
