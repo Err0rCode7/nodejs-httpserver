@@ -8,7 +8,7 @@ const pool = mysql.createPool(config.db());
 
 router.get('/followlist/:nickName', async (req, res) => {
 
-    console.log("request Ip ( Get Follow with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get Follow List ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const nickName = req.params.nickName;
 
     const followListQuery = `select \
@@ -64,7 +64,7 @@ router.get('/followlist/:nickName', async (req, res) => {
 
 router.get('/followerlist/:nickName', async (req, res) => {
 
-    console.log("request Ip ( Get Follow with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get Follower List ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const nickName = req.params.nickName;
 
     const followListQuery = `select \
@@ -185,7 +185,7 @@ router.post('/', async (req, res) => {
 
 router.delete('', async (req, res) => {
 
-    console.log("request Ip ( Post Follow canceling) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Delete follow ) :",req.connection.remoteAddress.replace('::ffff:', ''));
 
     const {nick_name, dest_nick_name} = req.query;
 
