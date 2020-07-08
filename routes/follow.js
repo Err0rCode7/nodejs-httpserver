@@ -6,15 +6,127 @@ const config = require('../config/config.js');
 const router = express.Router();
 const pool = mysql.createPool(config.db());
 
+router.get('/followlist/:nickName', async (req, res) => {
+
+    console.log("request Ip ( Get Follow with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const nickName = req.params.nickName;
+
+    const followListQuery = `select \
+                                user.nick_name as nick_name, \
+                                user.first_name as first_name, \
+                                user.last_name as last_name, \
+                                user.date_created as date_created, \
+                                user.date_updated as date_updated, \
+                                user.follow as follow, \
+                                user.follower as follower, \
+                                user.image_url as image_url, \
+                                user.image_name as image_name \
+                            from follow as fl \
+                            INNER JOIN user \
+                            ON fl.dest_nick_name = user.nick_name \
+                            where fl.nick_name = '${nickName}' \
+                            ORDER BY fl.id;`
+
+    let conn;
+
+    try {
+
+        if (nickName == undefined) {
+            throw "Follow Exception : Undefined Request Params";
+        }
+
+        conn = await pool.getConnection();
+
+        const resultFollowListQuery = await conn.query(followListQuery);
+        const rowFollowListQuery = resultFollowListQuery[0];
+
+        await conn.beginTransaction();
+
+        await conn.commit();
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify(rowFollowListQuery));
+
+    } catch (e) {
+
+        console.log(e);
+
+        await conn.rollback();
+        
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+        
+
+    } finally {
+        conn.release();
+    }
+});
+
+router.get('/followerlist/:nickName', async (req, res) => {
+
+    console.log("request Ip ( Get Follow with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const nickName = req.params.nickName;
+
+    const followListQuery = `select \
+                                user.nick_name as nick_name, \
+                                user.first_name as first_name, \
+                                user.last_name as last_name, \
+                                user.date_created as date_created, \
+                                user.date_updated as date_updated, \
+                                user.follow as follow, \
+                                user.follower as follower, \
+                                user.image_url as image_url, \
+                                user.image_name as image_name \
+                            from follow as fl \
+                            INNER JOIN user \
+                            ON fl.nick_name = user.nick_name \
+                            where fl.dest_nick_name = '${nickName}' \
+                            ORDER BY fl.id;`
+
+    let conn;
+
+    try {
+
+        if (nickName == undefined) {
+            throw "Follow Exception : Undefined Request Params";
+        }
+
+        conn = await pool.getConnection();
+
+        const resultFollowListQuery = await conn.query(followListQuery);
+        const rowFollowListQuery = resultFollowListQuery[0];
+
+        await conn.beginTransaction();
+
+        await conn.commit();
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify(rowFollowListQuery));
+
+    } catch (e) {
+
+        console.log(e);
+
+        await conn.rollback();
+        
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+        
+
+    } finally {
+        conn.release();
+    }
+})
+
 router.post('/', async (req, res) => {
 
     console.log("request Ip ( Post Follow ) :",req.connection.remoteAddress.replace('::ffff:', ''));
 
-    const {user_id, dest_id} = req.body;
+    const {nick_name, dest_nick_name} = req.body;
 
-    const followedQuery = `update user set follower = follower + 1 where user_id = "${dest_id}";`;
-    const followingQuery = `update user set follow = follow + 1 where user_id = "${user_id}";`;
-    const followCreateQuery = `insert into follow (user_id, dest_id) values('${user_id}', '${dest_id}');`;
+    const followedQuery = `update user set follower = follower + 1 where nick_name = "${dest_nick_name}";`;
+    const followingQuery = `update user set follow = follow + 1 where nick_name = "${nick_name}";`;
+    const followCreateQuery = `insert into follow (nick_name, dest_nick_name) values('${nick_name}', '${dest_nick_name}');`;
     
     let conn;
 
@@ -22,12 +134,12 @@ router.post('/', async (req, res) => {
 
         conn = await pool.getConnection();
 
-        if (user_id == undefined || dest_id == undefined) {
+        if (nick_name == undefined || dest_nick_name == undefined) {
             throw "Follow Exception : Undefined Request Body";
         }
 
-        if (user_id == dest_id) {
-            throw "Follow Exception : user_id is equal to dest_id";
+        if (nick_name == dest_nick_name) {
+            throw "Follow Exception : nick_name is equal to dest_nick_name";
         }
 
         await conn.beginTransaction();
@@ -71,28 +183,28 @@ router.post('/', async (req, res) => {
 
 });
 
-router.post('/canceling', async (req, res) => {
+router.delete('', async (req, res) => {
 
     console.log("request Ip ( Post Follow canceling) :",req.connection.remoteAddress.replace('::ffff:', ''));
 
-    const {user_id, dest_id} = req.body;
+    const {nick_name, dest_nick_name} = req.query;
 
-    const followedQuery = `update user set follower = follower - 1 where user_id = "${dest_id}";`;
-    const followingQuery = `update user set follow = follow - 1 where user_id = "${user_id}";`;
-    const followDeleteQuery = `delete from follow where user_id = '${user_id}' and dest_id = '${dest_id}';`;
+    const followedQuery = `update user set follower = follower - 1 where nick_name = "${dest_nick_name}";`;
+    const followingQuery = `update user set follow = follow - 1 where nick_name = "${nick_name}";`;
+    const followDeleteQuery = `delete from follow where nick_name = '${nick_name}' and dest_nick_name = '${dest_nick_name}';`;
 
     let conn;
 
     try {
-        
+
         conn = await pool.getConnection();
 
-        if (user_id == undefined || dest_id == undefined) {
+        if (nick_name == undefined || dest_nick_name == undefined) {
             throw "Follow Exception : Undefined Request Body";
         }
 
-        if (user_id == dest_id) {
-            throw "Follow Exception : user_id is equal to dest_id";
+        if (nick_name == dest_nick_name) {
+            throw "Follow Exception : nick_name is equal to dest_nick_name";
         }
 
         await conn.beginTransaction();
