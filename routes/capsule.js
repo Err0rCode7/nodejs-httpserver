@@ -437,7 +437,7 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
     const filesInfo = req.files
     const capsule_id = req.body.capsule_id;
     let title = req.body.title;
-    const text = req.body.text;
+    let text = req.body.text;
     
     // mysql ' " exception control
     title = title.replace("'","\\'").replace('"','\\"');
@@ -558,7 +558,8 @@ router.put('/', async (req, res) => {
 
     let conn;
     
-    const {capsule_id, text} = req.body;
+    const {capsule_id} = req.body;
+    let {text} = req.body;
     let title = req.body.title;
 
     const status_temp = 0;
