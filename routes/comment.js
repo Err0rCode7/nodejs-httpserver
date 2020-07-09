@@ -15,7 +15,11 @@ router.get('/list/:capsuleId', async (req, res) => {
                                     c.nick_name as parent_nick_name, \
                                     r.nick_name as child_nick_name, \
                                     c.comment as parent_comment, \
-                                    r.comment as child_comment \
+                                    r.comment as child_comment, \
+                                    c.date_created as parent_date_created, \
+                                    c.date_updated as parent_date_updated, \
+                                    r.date_created as child_date_created, \
+                                    r.date_updated as child_date_updated \
                                     from comment as c \
                                     LEFT JOIN reply r \
                                     ON c.id = r.parent_id \
@@ -46,9 +50,19 @@ router.get('/list/:capsuleId', async (req, res) => {
         let commentList = [];
         let temp_parent_nick;
         let temp_parent_comment;
+        let temp_parent_date_created;
+        let temp_parent_date_updated;
+
         rowCommentList.forEach( item => {
 
-            const {parent_nick_name, child_nick_name, parent_comment, child_comment} = item;
+            const {parent_nick_name, 
+                child_nick_name, 
+                parent_comment, 
+                child_comment,
+                parent_date_created, 
+                parent_date_updated, 
+                child_date_created, 
+                child_date_updated} = item;
 
             if (count == 0){
                 // No Reply
@@ -57,37 +71,57 @@ router.get('/list/:capsuleId', async (req, res) => {
                     commentList.push({
                         nick_name: parent_nick_name,
                         comment: parent_comment,
+                        date_created: parent_date_created,
+                        date_updated: parent_date_updated,
                         replies: childList
                     });
+
                 } else {
+
                     temp_parent_nick = parent_nick_name;
                     temp_parent_comment = parent_comment;
+                    temp_parent_date_created = parent_date_created;
+                    temp_parent_date_updated = parent_date_updated;
+
                     childList.push({
                         nick_name: child_nick_name,
-                        comment: child_comment
+                        comment: child_comment,
+                        date_created: child_date_created,
+                        date_updated: child_date_updated
                     });
                     count++;
                 }
             } else {
+
                 if (child_nick_name == null){
                     commentList.push({
                         nick_name: temp_parent_nick,
                         comment: temp_parent_comment,
+                        date_created: temp_parent_date_created,
+                        date_updated: temp_parent_date_updated,
                         replies: childList
                     });
                     commentList.push({
                         nick_name: parent_nick_name,
                         comment: parent_comment,
+                        date_created: parent_date_created,
+                        date_updated: parent_date_updated,
                         replies: []
                     })
                     count = 0;
 
                 } else {
+
                     temp_parent_nick = parent_nick_name;
                     temp_parent_comment = parent_comment;
+                    temp_parent_date_created = parent_date_created;
+                    temp_parent_date_updated = parent_date_updated;
+
                     childList.push({
                         nick_name: child_nick_name,
-                        comment: child_comment
+                        comment: child_comment,
+                        date_created: child_date_created,
+                        date_updated: child_date_updated
                     });
                     count++; 
                 }
