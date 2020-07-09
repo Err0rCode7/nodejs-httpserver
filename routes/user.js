@@ -365,11 +365,13 @@ router.post('/auth', async (req, res) =>{
 
     console.log("request Ip ( Post Authorization ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-    const {user_id, password} = req.body
+    let {user_id, password} = req.body
     
     let conn;
 
     try {
+
+        conn = await pool.getConnection();
 
         if (user_id == undefined || password == undefined){
             throw "Exception : Id, Password are undefined";
@@ -377,10 +379,10 @@ router.post('/auth', async (req, res) =>{
 
         user_id = user_id.replace("'","\\'").replace('"','\\"');
         password = password.replace("'","\\'").replace('"','\\"');
-        
-        const query = `select user_id from user where user_id = "${user_id}" and password = password("${password}");`;   
 
-        conn = await pool.getConnection();
+        const query = `select nick_name from user where user_id = "${user_id}" and password = password("${password}");`;   
+
+        
 
         const result = await conn.query(query);
         const rows = result[0];
@@ -390,7 +392,7 @@ router.post('/auth', async (req, res) =>{
             throw "Exception : Incorrect Id, Password";
 
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": true}'); 
+        res.end(JSON.stringify(rows[0])); 
 
     } catch(e) {
         console.log(e);
