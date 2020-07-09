@@ -416,27 +416,62 @@ http://address:port/comment/list/"Input the Capsule Id"
     {
         nick_name: "nick12",
         comment: "comment Test1",
-        replies: [
-            {
-                nick_name: "nick12",
-                comment: "comment Test4"
-            },
-            {
-                nick_name: "nick12",
-                comment: "comment Test5"
-            }
-        ]
+        date_created: "2020-07-09T15:44:27.000Z",
+        date_updated: "2020-07-09T15:44:27.000Z",
+        replies: [ ]
     },
-
     {
         nick_name: "nick12",
         comment: "comment Test2",
-        replies: [ ]
+        date_created: "2020-07-09T15:44:31.000Z",
+        date_updated: "2020-07-09T15:44:31.000Z",
+        replies: [
+            {
+                nick_name: "nick12",
+                comment: "comment Test9",
+                date_created: "2020-07-09T15:46:13.000Z",
+                date_updated: "2020-07-09T15:46:13.000Z"
+            }
+        ]
     },
-
     {
         nick_name: "nick12",
         comment: "comment Test3",
+        date_created: "2020-07-09T15:44:33.000Z",
+        date_updated: "2020-07-09T15:44:33.000Z",
+        replies: [ ]
+    },
+    {
+        nick_name: "nick12",
+        comment: "comment Test4",
+        date_created: "2020-07-09T15:44:36.000Z",
+        date_updated: "2020-07-09T15:44:36.000Z",
+        replies: [
+            {
+                nick_name: "nick12",
+                comment: "comment Test6",
+                date_created: "2020-07-09T15:46:01.000Z",
+                date_updated: "2020-07-09T15:46:01.000Z"
+            },
+            {
+                nick_name: "nick12",
+                comment: "comment Test7",
+                date_created: "2020-07-09T15:46:05.000Z",
+                date_updated: "2020-07-09T15:46:05.000Z"
+            },
+            {
+                nick_name: "nick12",
+                comment: "comment Test8",
+                date_created: "2020-07-09T15:46:08.000Z",
+                date_updated: "2020-07-09T15:46:08.000Z"
+            }
+        ]
+    },
+    {
+        nick_name: "nick12",
+        comment: "comment Test5",
+        date_created: "2020-07-09T15:44:40.000Z",
+        date_updated: "2020-07-09T15:44:40.000Z",
         replies: [ ]
     }
 ]
@@ -516,5 +551,30 @@ http://address:port/comment/reply/"Input the Comment ID"
 ```json
 {
    "success": true
+}
+```
+
+## Users
+
+--- 
+
+### Get Authorization
+
+- Get/ `./users/auth`
+    - Get authrization info
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+http://address:port/users/auth"
+```
+
+#### Response Form Sample
+```json
+{
+   "nick_name": "__"
 }
 ```
