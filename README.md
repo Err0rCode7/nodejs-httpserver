@@ -248,7 +248,7 @@ http://address:port/like?capsule_id=__&nick_name="__"
 ```
 
 ## Completed - 4
-( 2020/7/8 ~ 2020/7/9 )
+( 2020/7/8 ~ 2020/7/10 )
 
 ---
 
@@ -332,7 +332,7 @@ http://address:port/follow/followerlist/"Input the Nick"
     ]
 ```
 
-#### Get Capsules with Nick Name
+### Get Capsules with Nick Name
     
 - Get/ `./capsules/nick/:nickName`
     - response capsulelist of A user has nickName 
@@ -394,6 +394,31 @@ http://address:port/capsule/nick/"Input the Nick"
         ]
     }
 ]
+```
+
+### Post Capsules
+
+- Post/ `./capsules`
+    - Post a capsule stored temporally
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+{
+	"nick_name" : "__",
+	"lat": __,
+	"lng": __
+}
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
 ```
 
 #### Post Comment

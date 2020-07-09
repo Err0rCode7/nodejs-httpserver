@@ -377,23 +377,31 @@ router.post('/', async (req,res) => {
     console.log("request Ip ( Post Temporal-Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const { user_id, lat, lng } =req.body; 
-
+    const { nick_name, lat, lng } = req.body; 
     let conn;
 
     try {
 
         conn = await pool.getConnection();
         
-        if (user_id == undefined || lat == undefined || lng == undefined) {
+        if (nick_name == undefined || lat == undefined || lng == undefined) {
             throw {name: 'undefinedBodyException', message: "Post Capsule - Capsule_info not exist "};
         }
 
         if (lat > 90 || lat < -90 || lng > 180 || lng < -180)
             throw{name: 'lat_lng_Exception', message: "Post Capsule - this lat, lng is not correct"};
+        const userIdQuery = `select user_id from user where nick_name = '${nick_name}';`;
 
-        const query = `insert into capsule (user_id, status_temp, location) values('${user_id}',\
-         true, point(${lng}, ${lat}));`
+
+        const idResult = await conn.query(userIdQuery);
+
+        if (idResult[0].length == 0) {
+            throw{name: 'Nick_Name_Error', message: "Post Capsule - this nick_name not exist"};
+        }
+        const rowId = idResult[0][0]
+        const user_id = rowId.user_id;
+        const query = `insert into capsule (user_id, nick_name, status_temp, location) 
+        values('${user_id}', '${nick_name}', true, point(${lng}, ${lat}));`
 
         //console.log(query);
         await conn.beginTransaction();
@@ -416,7 +424,7 @@ router.post('/', async (req,res) => {
         } else {
             console.log(e.message);
         }
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}');
     } finally {
         conn.release();

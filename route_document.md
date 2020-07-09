@@ -93,6 +93,32 @@ http://address:port/capsule/nick/"Input the Nick"
 ]
 ```
 
+
+### Post Capsules
+
+- Post/ `./capsules`
+    - Post a capsule stored temporally
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+{
+	"nick_name" : "__",
+	"lat": __,
+	"lng": __
+}
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
 ## Contents
 
 --- 
