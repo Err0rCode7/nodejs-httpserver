@@ -365,12 +365,21 @@ router.post('/auth', async (req, res) =>{
 
     console.log("request Ip ( Post Authorization ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-
-    const query = `select user_id from user where user_id = "${req.body.user_id}" and password = password("${req.body.password}");`;   
+    const {user_id, password} = req.body
+    
     let conn;
 
     try {
+
+        if (user_id == undefined || password == undefined){
+            throw "Exception : Id, Password are undefined";
+        }
+
+        user_id = user_id.replace("'","\\'").replace('"','\\"');
+        password = password.replace("'","\\'").replace('"','\\"');
         
+        const query = `select user_id from user where user_id = "${user_id}" and password = password("${password}");`;   
+
         conn = await pool.getConnection();
 
         const result = await conn.query(query);

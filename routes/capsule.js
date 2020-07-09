@@ -443,8 +443,11 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
     title = title.replace("'","\\'").replace('"','\\"');
 
     let textQuery = null;
-    if (text != undefined)
-    textQuery = '\'' + text + '\'';
+    if (text != undefined){
+        text = text.replace("'","\\'").replace('"','\\"');
+        textQuery = '\'' + text + '\'';
+    }
+    
 
     //console.log(filesInfo);
     try {
@@ -564,8 +567,11 @@ router.put('/', async (req, res) => {
     title = title.replace("'","\\'").replace('"','\\"');
 
     let textQuery = null;
-    if (text != undefined)
+    if (text != undefined){
+        text = text.replace("'","\\'").replace('"','\\"');
         textQuery = '\'' + text + '\'';
+    }
+        
 
     try {
 
