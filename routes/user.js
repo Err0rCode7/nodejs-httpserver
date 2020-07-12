@@ -5,6 +5,10 @@ const config = require('../config/config.js');
 const multer = require('multer');
 const path = require('path');
 
+const ip = { // 서버 공인아이피 
+    address () { return "59.13.134.140" }
+};
+
 const router = express.Router();
 
 const pool = mysql.createPool(config.db());
@@ -87,6 +91,12 @@ router.get('/', async (req, res) => {
         const result = await conn.query(query);
         let rows = result[0];
 
+        if (ip.address() != config.url().ip) {
+            rows.forEach(row => {
+                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+            });
+        }
+
         //rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows)); //json object로 변경
@@ -121,10 +131,9 @@ router.get('/nick/:nick_name', async (req, res) => {
                         image_url, \
                         image_name \
                     from user \
-                    where user_id = "${req.params.nick_name}";`;
+                    where nick_name = "${req.params.nick_name}";`;
 
     let conn;
-
     try {
 
         conn = await pool.getConnection();
@@ -134,6 +143,12 @@ router.get('/nick/:nick_name', async (req, res) => {
 
         if (rows.length == 0){
             throw "Exception : Cant Find User";
+        }
+
+        if (ip.address() != config.url().ip) {
+            rows.forEach(row => {
+                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+            });
         }
 
         //rows.unshift({"success":true});
@@ -183,6 +198,12 @@ router.get('/:id', async (req, res) => {
 
         if (rows.length == 0){
             throw "Exception : Cant Find User";
+        }
+
+        if (ip.address() != config.url().ip) {
+            rows.forEach(row => {
+                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+            });
         }
 
         //rows.unshift({"success":true});
@@ -351,7 +372,7 @@ router.post('/', async (req, res) => {
     } catch (e) {
         await conn.rollback();
         console.log(e);
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}'); 
     } finally {
         conn.release();
@@ -411,14 +432,12 @@ router.put('/', async (req, res) => {
     console.log("request Ip ( Put User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const {password, nick_name, first_name, last_name, user_id} = req.body;
+    const {pre_nick_name, password, new_nick_name} = req.body;
     const query = `update user set \
     password = password("${password}"), \
-    nick_name = "${nick_name}", \
-    first_name = "${first_name}", \
-    last_name = "${last_name}", \
+    nick_name = "${new_nick_name}", \
     date_updated = now() \
-    where user_id = "${user_id}";`;
+    where nick_name = "${pre_nick_name}";`;
 
     let conn;
 
@@ -427,6 +446,11 @@ router.put('/', async (req, res) => {
         conn = await pool.getConnection();
 
         await conn.beginTransaction();
+     
+        if(pre_nick_name == undefined || password == undefined || new_nick_name == undefined) {
+            throw {name: 'undefinedBodyException', message: "Put User - user_info not exist"};
+        }
+
 
         const result = await conn.query(query);
         const rows = result[0];
@@ -440,7 +464,7 @@ router.put('/', async (req, res) => {
     } catch (e) {
         await conn.rollback();
         console.log(e);
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}'); 
     } finally {
         conn.release();
@@ -448,14 +472,83 @@ router.put('/', async (req, res) => {
 
 });
 
-router.delete('/:id', async (req, res) =>{
+router.put('/image', upload.single("file") ,async (req, res) =>{
+
+    console.log("request Ip ( Post User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+    
+    const fileInfo = req.file;
+    const {pre_nick_name, password, new_nick_name} = req.body;
+    const fileName = fileInfo.filename;
+    const fileUrl = "http://" + config.url().ip + ":" + config.url().port.toString() +
+                    "/contents/" + fileName;
+
+    let conn;
+
+    const query = `update user set \
+    password = password("${password}"), \
+    nick_name = "${new_nick_name}", \
+    date_updated = now(), \
+    image_url = "${fileUrl}", \
+    image_name = "${fileName}" \
+    where nick_name = "${pre_nick_name}";`;
+
+    try {
+
+        conn = await pool.getConnection();
+
+        await conn.beginTransaction();
+
+        if(pre_nick_name == undefined || password == undefined || new_nick_name == undefined) {
+                throw {name: 'undefinedBodyException', message: "Put User With Image - user_info not exist"};
+        }
+
+        /*
+            특수문자 예외 처리 필요한 부분
+        */
+        
+        const result = await conn.query(query);
+        const rows = result[0];
+        
+        if (rows.affectedRows == 0)
+            throw "Exception : Cant Insert User";
+
+        await conn.commit();
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": true}'); 
+
+    } catch (error) {
+        console.log(error);
+        if (fileInfo != undefined) {
+            const filePath = fileInfo.path;
+            fs.access(filePath, fs.constants.F_OK, (err) =>{
+                if (err) console.log('Cant delete files');
+            });
+            
+            fs.unlink(filePath, (err) => err ?
+            console.log(err) : console.log(`${filePath} is deleted !`));
+        }   
+
+        await conn.rollback();
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+    } finally {
+        conn.release();
+    }
+
+
+});
+
+router.delete('/:nick_name', async (req, res) =>{
 
 
     console.log("request Ip ( Delete User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const query = `delete from user \
-                    where user_id="${req.params.id}"`;
+    const selectUserQuery = `select image_name from user \
+                             where nick_name = "${req.params.nick_name}";`;
+    const deleteUserQuery = `delete from user \
+                    where nick_name="${req.params.nick_name}"`;
     
     let conn;
 
@@ -465,12 +558,36 @@ router.delete('/:id', async (req, res) =>{
 
         await conn.beginTransaction();
 
-        const result = await conn.query(query);
-        const rows = result[0];
-        if (rows.affectedRows == 0 )
-            throw "Exception : Cant Delete User";
+        const selectResult = await conn.query(selectUserQuery);
+        const selectRows = selectResult[0];
         
+        if (selectRows.length == 0 )
+            throw "DeleteUserException : Cant Find User";
+        
+        const fileName = selectRows[0].image_name;
+
         /*  select user image url and delete the image file */ 
+
+        const deleteResult = await conn.query(deleteUserQuery);
+        const deleteRows = deleteResult[0];
+
+        if (deleteRows.affectedRows == 0 )
+            throw {name: 'cantDeleteUserException', message: "Cant Delete this User"};
+
+
+        if (fileName != undefined && fileName != null) {
+            const filePath = `public/images/${fileName}`;
+            fs.access(filePath, fs.constants.F_OK, (err) =>{
+                if (err) throw {name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"};
+            });
+
+            fs.unlink(filePath, (err) => {
+                if (err)
+                    throw {name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"}
+                else
+                    console.log(`${filePath} is deleted !`);
+            });
+        } 
 
         /*  select user image url and delete the image file */ 
 
