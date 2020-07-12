@@ -2,6 +2,9 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const config = require('../config/config.js');
 
+const ip = { // 서버 공인아이피
+    address () { return "59.13.134.140" }
+};
 
 const router = express.Router();
 const pool = mysql.createPool(config.db());
@@ -27,6 +30,8 @@ router.get('/followlist/:nickName', async (req, res) => {
                             where fl.nick_name = '${nickName}' \
                             ORDER BY fl.id;`
 
+
+
     let conn;
 
     try {
@@ -36,11 +41,18 @@ router.get('/followlist/:nickName', async (req, res) => {
         }
 
         conn = await pool.getConnection();
+        await conn.beginTransaction();
 
         const resultFollowListQuery = await conn.query(followListQuery);
         const rowFollowListQuery = resultFollowListQuery[0];
 
-        await conn.beginTransaction();
+        
+
+        if (ip.address() != config.url().ip) {
+            rowFollowListQuery.forEach(row => {
+                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+            });
+        }
 
         await conn.commit();
 
@@ -67,7 +79,7 @@ router.get('/followerlist/:nickName', async (req, res) => {
     console.log("request Ip ( Get Follower List ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const nickName = req.params.nickName;
 
-    const followListQuery = `select \
+    const followerListQuery = `select \
                                 user.nick_name as nick_name, \
                                 user.first_name as first_name, \
                                 user.last_name as last_name, \
@@ -92,16 +104,21 @@ router.get('/followerlist/:nickName', async (req, res) => {
         }
 
         conn = await pool.getConnection();
-
-        const resultFollowListQuery = await conn.query(followListQuery);
-        const rowFollowListQuery = resultFollowListQuery[0];
-
         await conn.beginTransaction();
+
+        const resultFollowerListQuery = await conn.query(followerListQuery);
+        const rowFollowerListQuery = resultFollowerListQuery[0];
+
+        if (ip.address() != config.url().ip) {
+            rowFollowerListQuery.forEach(row => {
+                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+            });
+        }
 
         await conn.commit();
 
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(rowFollowListQuery));
+        res.end(JSON.stringify(rowFollowerListQuery));
 
     } catch (e) {
 
