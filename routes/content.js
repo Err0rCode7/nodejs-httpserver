@@ -102,13 +102,13 @@ router.get('/capsule-id/:capsuleId', async (req, res) => {
 
         const result = await conn.query(query);
         let rows = result[0];
-        rows.unshift({"success":true});
+        //rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows))
 
     } catch(e) {
         console.log(e);
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}');
     } finally {
         conn.release();
@@ -118,25 +118,25 @@ router.get('/capsule-id/:capsuleId', async (req, res) => {
 
 // Get contents
 
-router.get('/:contentid', (req, res, next) => {
+router.get('/:content_name', (req, res, next) => {
 
 
     console.log("request Ip ( Get content with contentId ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     try{
-        const contentId = req.params.contentid;
-        if (contentId == undefined) {
-            throw Error('Undefined contentId');
+        const content_name = req.params.content_name;
+        if (content_name == undefined) {
+            throw Error('Undefined content_name');
         }
         let contentPath = "";
-        console.log((path.extname(contentId)));
-        if ( isImg((path.extname(contentId)), result => {
+        console.log((path.extname(content_name)));
+        if ( isImg((path.extname(content_name)), result => {
             return result
         })) {
-            contentPath = './public/images/'+contentId;    
+            contentPath = './public/images/'+content_name;    
         } else {
-            contentPath = './public/videos/'+contentId;
+            contentPath = './public/videos/'+content_name;
         }
         const contentMime = mime.getType(contentPath);
         //console.log('contentPath: '+ contentPath);
@@ -170,13 +170,13 @@ router.get('/:contentid', (req, res, next) => {
             res.end();
         })
         stream.on('error', (error) => {
-            res.writeHead(500, {'Content-Type':'application/json'});
+            res.writeHead(404, {'Content-Type':'application/json'});
             res.end('{"success": false, "error": "internal error"}');
         });
 
     } catch(error) {
         console.log(error);
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}');
     }
 });
@@ -254,8 +254,10 @@ router.post('/', upload.array("file"), async (req, res) => {
 
         console.log(e);
 
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}');
+    } finally {
+        conn.release();
     }
 
 });
@@ -318,7 +320,7 @@ router.delete('/:contentName', async (req, res) =>{
     } catch (e) {
         console.log(e);
         await conn.rollback();
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}');
     } finally {
         conn.release();

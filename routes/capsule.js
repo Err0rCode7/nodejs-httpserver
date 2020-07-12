@@ -6,6 +6,10 @@ const path = require('path');
 const config = require('../config/config')
 const mysql = require('mysql2/promise');
 
+const ip = { // 서버 공인아이피
+    address () { return "59.13.134.140" }
+};
+
 const router = express.Router();
 const pool = mysql.createPool(config.db());
 
@@ -117,9 +121,6 @@ router.get('/location', async (req, res) => {
                     order by Dist;`
     
     let conn;
-
-    console.log("/location", lng, lat);
-    //console.log(lng,lat);
     try {
 
         conn = await pool.getConnection();
@@ -129,16 +130,14 @@ router.get('/location', async (req, res) => {
 
         const result = await conn.query(query);
         let rows = result[0];
-        if (rows.length == 0){
-            throw "Exception : Cant Find Capsules";
-        }
+
         //rows.unshift({"success":true});
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows));
         
     } catch (e) {
         console.log(e)
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
         //res.end('{"success": false}');
     } finally {
@@ -206,8 +205,14 @@ router.get('/nick/:nickName', async (req, res)=>{
                 lat,
                 lng,
                 content:null
-            })
+            });
             rows.forEach( item => {
+                
+                if ( item.url != undefined && ip.address() != config.url().ip) {
+                    if (ip.address() != config.url().ip) {
+                        item.url = item.url.replace(config.url().ip, ip.address());
+                    }
+                }
                 if (item != undefined) {
                     if (item.capsule_id == capsules[index].capsule_id ) {
                         content.push({
@@ -325,6 +330,11 @@ router.get('/:capsuleId', async (req, res) => {
             const {capsule_id, user_id, title, text, likes, views, date_created, date_opened, status_temp, lat, lng} = rows[0];
             let content = [];
             rows.forEach( item => {
+                if ( item.url != undefined && ip.address() != config.url().ip) {
+                    if (ip.address() != config.url().ip) {
+                        item.url = item.url.replace(config.url().ip, ip.address());
+                    }
+                }
                 content.push({content_id: item.content_id, url: item.url});
             });
     
@@ -551,7 +561,7 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
 
         console.log(e.message);
 
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}');
     } finally {
         conn.release();
@@ -628,7 +638,7 @@ router.put('/', async (req, res) => {
         await conn.rollback();
         console.log(e.message);
 
-        res.writeHead(200, {'Content-Type':'application/json'});
+        res.writeHead(404, {'Content-Type':'application/json'});
         res.end('{"success": false}');
     } finally {
         conn.release();
