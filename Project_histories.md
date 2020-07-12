@@ -485,6 +485,8 @@ http://address:port/comment/list/"Input the Capsule Id"
 ]
 ```
 
+### Post Capsules
+
 - Post/ `./comment`
     - Create a Comment
 
