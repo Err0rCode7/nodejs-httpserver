@@ -1,147 +1,20 @@
-# nodejs-httpserver
-Develope http-streaming-server
-
-## To-do
----
-- capsule rest api
-    - comment rest api
-        -commented comment
-    - tag
-
-- user rest api
-    - +follwer
-    - +follow
-
-- like
-
-- followers
-
-- anything...
-
-## Completed - 1
-(2020/05/18 ~ 2020/05/27)
+# Nodejs Restful-API
+Developing capsuleTime restful api
 
 ---
 
-- users 
-    - Get/ `./users/`
-    - Response JSON about all of users 
-
-        ![image](https://user-images.githubusercontent.com/48249549/83009436-bb191600-a051-11ea-90bf-ddceab46c525.png)
-
-    - Get/ `./users/:id/` 
-    - Response JSON about a user
-
-        ![image](https://user-images.githubusercontent.com/48249549/83009360-991f9380-a051-11ea-96f6-38c142a5fd7e.png)
-
-    - Post/ `./users/` 
-    - Register a user ( Inster a user ) 
-
-        ![image](https://user-images.githubusercontent.com/48249549/83010262-f23bf700-a052-11ea-9d1a-b228d7dba562.png)
-
-    - Put/ `./users/` 
-    - Update data of a user 
-
-        ![image](https://user-images.githubusercontent.com/48249549/83010799-ca00c800-a053-11ea-9157-bc7a4133978b.png)
-
-    - Delete/ `./users/` 
-    - Delete a user 
-
-        ![image](https://user-images.githubusercontent.com/48249549/83010614-7d1cf180-a053-11ea-9708-f793fbabf7d1.png) 
-
-        ![image](https://user-images.githubusercontent.com/48249549/83009810-472b3d80-a052-11ea-8b82-b0fa405eecbf.png)
-    ---
-    - Post/ `./users/auth/` 
-    - Check authorization(login) of a user 
-    - [Android](https://github.com/Err0rCode7/capsule-time-android) 에서 테스트 완료
-
-- contents ( image or video )
-
-    - Get/ `./contents/:contentId` 
-    - Response content with content ID 
-
-        ![image](https://user-images.githubusercontent.com/48249549/83011078-4693a680-a054-11ea-9e0a-2ee000d7607d.png)
-
-    - Get/ `contents/capsule-id/:capsuleId` 
-    - Response contentID 
-    
-    - Post/ `./contents/` 
-    - Upload a content or a nubmer of contents 
-    - with multipart/form-data
-
-        ![image](https://user-images.githubusercontent.com/48249549/83015039-c58bdd80-a05a-11ea-9604-dcc080c1c159.png)
-
-    - Put/ `./contents/`    Dont need 
-    - Dont develope
-
-    - Delete/ `./contents/contentId` 
-    - Delete a content 
-
-
-## Completed - 2
-( 2020/05/28 ~ 2020/06/03 )
-
----
-- capsules 
-
-    - Get/ `./capsules/`
-    - Response JSON about all of Capsules 
-
-        ![image](https://user-images.githubusercontent.com/48249549/83625774-72bca380-a5cf-11ea-9bcb-2b38580bf536.png)
-
-    - Get/ `./capsules/capsuleID` 
-    - Response JSON about a Capsule
-
-        ![image](https://user-images.githubusercontent.com/48249549/83626030-d777fe00-a5cf-11ea-88d6-28845bdd37cc.png)
-
-    - Get/ `./capsules/location?lat=__&lng=__`
-    - Response Json about capsules within 5KM
-
-        ![image](https://user-images.githubusercontent.com/48249549/83626287-2887f200-a5d0-11ea-856f-7378e92d3c9c.png)
-
-    - Get/ `./capsules/user?user_id=__`
-    - Response Json about capsules of a user
-
-        ![image](https://user-images.githubusercontent.com/48249549/83626440-6258f880-a5d0-11ea-997c-9f2baf23bf81.png)
-
-    - Post/ `./capsules`
-    - Post a capsule temporarily 
-
-        ![image](https://user-images.githubusercontent.com/48249549/83626561-903e3d00-a5d0-11ea-98de-3c1bc42f89b1.png)
-
-    - Put/ `./capsules`
-    - Complete a posted capsule 
-    - with multipart/form-data
-
-        ![image](https://user-images.githubusercontent.com/48249549/83626849-0347b380-a5d1-11ea-820a-40124cd62c23.png)
-
-        - 결과
-
-        ![image](https://user-images.githubusercontent.com/48249549/83627094-65a0b400-a5d1-11ea-8b9c-df9dd6d388cd.png)
-
-
-    - Delete/ `./capsules`
-    - Delete all about a capsule
-
-        ![image](https://user-images.githubusercontent.com/48249549/83627209-8a952700-a5d1-11ea-9916-d5f56fcf0258.png)
-
-        - 결과
-
-        ![image](https://user-images.githubusercontent.com/48249549/83627271-9d0f6080-a5d1-11ea-827e-0ab18e894249.png)
-
-## Completed - 3
-( 2020/7/5 ~ 2020/7/8 )
+# End Points
 
 ---
 
-## Follow - 1
+## Users
 
-### Post Follow
-    
-- Post/ `./follow/`
-    - user's follow is added 1
-    - dest's follwer is added 1
-    - create a row of follow table in DB
+--- 
+
+### Get All Users
+
+- Get/ `./users/`
+    - Get all users
 
 - Success Response : Header with Code 200
 - Fail Response : Header with Code 404
@@ -149,49 +22,132 @@ Develope http-streaming-server
 #### Request Form Sample
     
 ```json
-{
-    "nick_name" : "__",
-    "dest_nick_name" : "__" 
-}
+http://address:port/users
 ```
 
 #### Response Form Sample
 ```json
-    [
-        {
+[
+    {
+        user_id: "182cm______04",
         nick_name: "nick11",
         first_name: "민성",
         last_name: "박",
+        email_id: "11",
+        email_domain: "1",
         date_created: "2020-06-14T19:17:46.000Z",
         date_updated: "2020-06-14T19:17:46.000Z",
         follow: 1,
         follower: 0,
-        image_url: "http://118.44.168.218:7070/contents/1592162266492.jpg",
+        image_url: "http://59.13.134.140:7070/contents/1592162266492.jpg",
         image_name: "1592162266492.jpg"
-        },
-
-        {
-            ...
-        },
-
-        {
-            ...
-        }
-    ]
+    },
+    {
+        user_id: "hhheum",
+        nick_name: "nick12",
+        first_name: "재성",
+        last_name: "이",
+        email_id: "12",
+        email_domain: "12",
+        date_created: "2020-06-14T19:20:05.000Z",
+        date_updated: "2020-06-14T19:20:05.000Z",
+        follow: 0,
+        follower: 1,
+        image_url: "http://59.13.134.140:7070/contents/1592162405325.jpg",
+        image_name: "1592162405325.jpg"
+    }
+]
 ```
-### Delete follow
 
-- Delete/ `./follow?nick_name="__"&dest_nick_name="__"`
-    - user's follow is subtracted 1
-    - dest's follower is subtracted 1
-    - delete a row of follow table in DB 
+### Get A User With Nick_name
+
+- Get/ `./users/nick/:nick_name`
+    - Get a user has this nick_name
 
 - Success Response : Header with Code 200
 - Fail Response : Header with Code 404
 
 #### Request Form Sample
+    
 ```json
-http://address:port/like?nick_name="__"&dest_nick_name="__"
+http://address:port/users/nick/"Input the nick"
+```
+
+#### Response Form Sample
+
+```json
+[
+    {
+        user_id: "182cm______04",
+        nick_name: "nick11",
+        first_name: "민성",
+        last_name: "박",
+        email_id: "11",
+        email_domain: "1",
+        date_created: "2020-06-14T19:17:46.000Z",
+        date_updated: "2020-06-14T19:17:46.000Z",
+        follow: 1,
+        follower: 0,
+        image_url: "http://59.13.134.140:7070/contents/1592162266492.jpg",
+        image_name: "1592162266492.jpg"
+    }
+]
+```
+
+### Get A User With User_id
+
+- Get/ `./users/user_id`
+    - Get a user has this user_id
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+http://address:port/users/"Input the user_id"
+```
+
+#### Response Form Sample
+
+```json
+[
+    {
+        user_id: "182cm______04",
+        nick_name: "nick11",
+        first_name: "민성",
+        last_name: "박",
+        email_id: "11",
+        email_domain: "1",
+        date_created: "2020-06-14T19:17:46.000Z",
+        date_updated: "2020-06-14T19:17:46.000Z",
+        follow: 1,
+        follower: 0,
+        image_url: "http://59.13.134.140:7070/contents/1592162266492.jpg",
+        image_name: "1592162266492.jpg"
+    }
+]
+```
+
+### Post A User
+
+- Post/ `./users/`
+    - Post a user
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+{
+   "user_id": "__",
+   "password": __,
+   "nick_name": "__",
+   "first_name": "__",
+   "last_name": "__",
+   "email": "__"
+}
 ```
 
 #### Response Form Sample
@@ -201,58 +157,498 @@ http://address:port/like?nick_name="__"&dest_nick_name="__"
 }
 ```
 
-### Post Like
+### Post User Authorization
 
-- Post/ `./like/` 
-    - like of the capsule of user is added 1
-    - create a row of like table in DB 
-
-- Success Response : Header with Code 200
-- Fail Response : Header with Code 404
-    
-#### Request Form sample
-```json
-{
-    "capsule_id" : __,
-    "nick_name" : "__" 
-}
-```
-#### Response Form sample
-
-```json
-{
-   "success": true
-}
-```
-
-### Delete Like
-    
-- Delete/ `./like?capsule_id=__&nick_name="__"`
-    - like of the capsule of user is subtracted 1
-    - delete a row of like table in DB 
+- Post/ `./users/auth`
+    - Post authrization info
 
 - Success Response : Header with Code 200
 - Fail Response : Header with Code 404
+
+#### Request Form Sample
     
-#### Request Form sample
-```
-http://address:port/like?capsule_id=__&nick_name="__"
-```
-
-#### Response Form sample
-
 ```json
 {
-   "success": true
+   "user_id": "__",
+   "password": __,
 }
 ```
 
-## Completed - 4
-( 2020/7/8 ~ 2020/7/10 )
+#### Response Form Sample
+```json
+{
+   "nick_name": "__"
+}
+```
+
+### Put A User
+
+- Put/ `./users/`
+    - Put a user
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+{
+    "pre_nick_name": "__",
+    "password": __,
+    "new_nick_name": "__"
+}
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```
+
+### Put A User With Image
+
+- Put/ `./users/image`
+    - Put a user with image
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+
+
+```json
+@multipart
+{
+    "pre_nick_name": "__",
+    "password": __,
+    "new_nick_name": "__",
+    "file": __
+}
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```
+
+### Delete A User
+
+- Delete/ `./users`
+    - Delete a user
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+
+
+```json
+http://address:port/users/"Input the nick_name"
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```
+
+## Capsules
 
 ---
 
-## Follow - 2
+### Get Capsules
+
+- Get/ `./capsules/`
+    - Response all capsules 
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```
+http://address:port/capsules"
+```
+
+#### Response Form Sample
+```json
+[
+    {
+        capsule_id: 20,
+        user_id: "182cm______04",
+        nick_name: "nick11",
+        title: "당일치기 제주도 !!",
+        text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~",
+        likes: 1,
+        views: 0,
+        date_created: "2020-06-14T19:21:56.000Z",
+        date_opened: "2020-06-14T19:21:56.000Z",
+        status_temp: 0,
+        lat: 38.1478,
+        lng: 128.5405
+    },
+    {
+        capsule_id: 21,
+        user_id: "hhheum",
+        nick_name: "nick12",
+        title: "당일치기 제주도 !!",
+        text: "당일치기로 제주도 먹방여행 완전 먹기만해서 +3kg 한 날ㅋㅋㅋㅋ 다음에 올때 뭐 먹었는지 캡슐에 킾~",
+        likes: 0,
+        views: 0,
+        date_created: "2020-06-14T19:26:19.000Z",
+        date_opened: "2020-06-14T19:26:19.000Z",
+        status_temp: 0,
+        lat: 33.506,
+        lng: 126.4931
+    }
+]
+```
+
+### Get Capsules With Location
+    
+- Get/ `./capsules/location?lnt=__&lat=__`
+    - Response capsules within 100 meter
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```
+http://address:port/capsules/location?lnt=__&lat=__
+```
+
+#### Response Form Sample
+```json
+[
+    {
+    capsule_id: 68,
+    user_id: "hhheum",
+    title: null,
+    likes: 0,
+    views: 0,
+    text: null,
+    date_created: "2020-07-09T16:27:04.000Z",
+    date_opened: "2020-07-09T16:27:04.000Z",
+    status_temp: 1,
+    location: {
+            x: 12,
+            y: 12
+        },
+    nick_name: "nick12",
+    Dist: "0.00000"
+    },
+
+    {
+        ...
+    }
+]
+```
+
+### Get Capsules with Nick Name
+    
+- Get/ `./capsules/nick/:nickName`
+    - Response capsulelist of A user has nickName 
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```
+http://address:port/capsules/nick/"Input the nick"
+```
+
+#### Response Form Sample
+```json
+[
+    {
+        capsule_id: 63,
+        user_id: "hhheum",
+        nick_name: "nick12",
+        title: "hhh",
+        text: "hhh",
+        likes: 0,
+        views: 0,
+        date_created: "2020-07-07T13:37:01.000Z",
+        date_opened: "2020-07-07T13:37:01.000Z",
+        status_temp: 0,
+        lat: 56,
+        lng: 100,
+        content: [
+            {
+                content_id: null,
+                url: null
+            }
+        ]
+    },
+    {
+        capsule_id: 62,
+        user_id: "hhheum",
+        nick_name: "nick12",
+        title: "소영이랑 첫 여행!!",
+        text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~~",
+        likes: 0,
+        views: 0,
+        date_created: "2020-07-01T05:22:17.000Z",
+        date_opened: "2020-07-01T05:22:17.000Z",
+        status_temp: 0,
+        lat: 35.1567,
+        lng: 129.1524,
+        content: [
+            {
+                content_id: 58,
+                url: "http://118.44.168.218:7070/contents/1593581760709.jpg"
+            },
+            {
+                content_id: 59,
+                url: "http://118.44.168.218:7070/contents/1593581760717.jpg"
+            }
+        ]
+    }
+]
+```
+
+### Get Capsules With Capsule_id
+    
+- Get/ `./capsules/:capsule_id`
+    - Response a capsule has this capsule_id
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```
+http://address:port/capsules/nick/"Input the capsule_id"
+```
+
+#### Response Form Sample
+```json
+{
+    capsule_id: 25,
+    user_id: "mingso0",
+    title: "당일치기 제주도 !!",
+    text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~",
+    likes: 0,
+    views: 0,
+    date_created: "2020-06-14T19:30:09.000Z",
+    date_opened: "2020-06-14T19:30:09.000Z",
+    status_temp: 0,
+    lat: 35.1286,
+    lng: 126.8066,
+    content: [
+        {
+        content_id: 48,
+        url: "http://59.13.134.140:7070/contents/1592163019288.jpg"
+        }
+    ]
+}
+```
+
+### Post Capsules
+
+- Post/ `./capsules`
+    - Post a capsule stored temporally
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+{
+	"nick_name" : "__",
+	"lat": __,
+	"lng": __
+}
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
+### Put Capsules
+
+- Put/ `./capsules`
+    - Put a capsule
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+{
+	"capsule_id" : __,
+	"text": __,
+    "title": __
+}
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
+### Put Capsules With Images
+
+- Put/ `./capsules/with/images`
+    - Put a capsule with image
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+@multipart
+"capsule_id" : __,
+"text": __,
+"title": __
+"file": 
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
+### Delete Capsule With Capsule_id
+
+- Delete/ `./capsules/:capsuleId`
+    - Delete a capsule with capsule_id
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+http://address:port/capsules/"Input the capsule_id"
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
+## Contents
+
+--- 
+
+### Get Content With Content_name
+
+- Get/ `./:content_name
+    - Response a content
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+http://address:port/contents/"Input the content_name"
+```
+
+#### Response Form Sample
+
+```
+Stream A image data
+```
+
+### Get Content information With Capsule_id
+
+- Get/ `./capsule-id/:capsuleId`
+    - Response information of contents from a capsule has capsule_id
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```json
+http://address:port/contents/capsule-id/"Input the capsule_id"
+```
+
+#### Response Form Sample
+```json
+[
+    {
+        content_id: 48,
+        content_name: "1592163019288.jpg",
+        capsule_id: 25,
+        url: "http://118.44.168.218:7070/contents/1592163019288.jpg",
+        extension: ".jpg",
+        size: 150094
+    },
+
+    {
+        ...
+    }
+]
+```
+
+### Post Contents
+
+- Post/ `./:content_name`
+    - Post contents
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+```json
+@multipart
+file: list of files
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
+### Delete Content With Content_name
+
+- Delete/ `./:content_name`
+    - Delete a content
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+```json
+http://address:port/contents/"Input the content_id"
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
+## Follow
+
+--- 
 
 ### Get Follow List
     
@@ -332,74 +728,12 @@ http://address:port/follow/followerlist/"Input the Nick"
     ]
 ```
 
-### Get Capsules with Nick Name
+### Post Follow
     
-- Get/ `./capsules/nick/:nickName`
-    - response capsulelist of A user has nickName 
-
-- Success Response : Header with Code 200
-- Fail Response : Header with Code 404
-
-#### Request Form Sample
-    
-```
-http://address:port/capsule/nick/"Input the Nick"
-```
-
-#### Response Form Sample
-```json
-[
-    {
-        capsule_id: 63,
-        user_id: "hhheum",
-        nick_name: "nick12",
-        title: "hhh",
-        text: "hhh",
-        likes: 0,
-        views: 0,
-        date_created: "2020-07-07T13:37:01.000Z",
-        date_opened: "2020-07-07T13:37:01.000Z",
-        status_temp: 0,
-        lat: 56,
-        lng: 100,
-        content: [
-            {
-                content_id: null,
-                url: null
-            }
-        ]
-    },
-    {
-        capsule_id: 62,
-        user_id: "hhheum",
-        nick_name: "nick12",
-        title: "소영이랑 첫 여행!!",
-        text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~~",
-        likes: 0,
-        views: 0,
-        date_created: "2020-07-01T05:22:17.000Z",
-        date_opened: "2020-07-01T05:22:17.000Z",
-        status_temp: 0,
-        lat: 35.1567,
-        lng: 129.1524,
-        content: [
-            {
-                content_id: 58,
-                url: "http://118.44.168.218:7070/contents/1593581760709.jpg"
-            },
-            {
-                content_id: 59,
-                url: "http://118.44.168.218:7070/contents/1593581760717.jpg"
-            }
-        ]
-    }
-]
-```
-
-### Post Capsules
-
-- Post/ `./capsules`
-    - Post a capsule stored temporally
+- Post/ `./follow/`
+    - user's follow is added 1
+    - dest's follwer is added 1
+    - create a row of follow table in DB
 
 - Success Response : Header with Code 200
 - Fail Response : Header with Code 404
@@ -408,16 +742,104 @@ http://address:port/capsule/nick/"Input the Nick"
     
 ```json
 {
-	"nick_name" : "__",
-	"lat": __,
-	"lng": __
+    "nick_name" : "__",
+    "dest_nick_name" : "__" 
 }
 ```
 
 #### Response Form Sample
 ```json
+    [
+        {
+        nick_name: "nick11",
+        first_name: "민성",
+        last_name: "박",
+        date_created: "2020-06-14T19:17:46.000Z",
+        date_updated: "2020-06-14T19:17:46.000Z",
+        follow: 1,
+        follower: 0,
+        image_url: "http://118.44.168.218:7070/contents/1592162266492.jpg",
+        image_name: "1592162266492.jpg"
+        },
+
+        {
+            ...
+        },
+
+        {
+            ...
+        }
+    ]
+```
+### Delete follow
+
+- Delete/ `./follow?nick_name="__"&dest_nick_name="__"`
+    - user's follow is subtracted 1
+    - dest's follower is subtracted 1
+    - delete a row of follow table in DB 
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+```json
+http://address:port/like?nick_name="__"&dest_nick_name="__"
+```
+
+#### Response Form Sample
+```json
 {
-    "success": true
+   "success": true
+}
+```
+
+## Like
+
+---
+
+### Post Like
+
+- Post/ `./like/` 
+    - like of the capsule of user is added 1
+    - create a row of like table in DB 
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+    
+#### Request Form sample
+```json
+{
+    "capsule_id" : __,
+    "nick_name" : "__" 
+}
+```
+#### Response Form sample
+
+```json
+{
+   "success": true
+}
+```
+
+### Delete Like
+    
+- Delete/ `./like?capsule_id=__&nick_name="__"`
+    - like of the capsule of user is subtracted 1
+    - delete a row of like table in DB 
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+    
+#### Request Form sample
+```
+http://address:port/like?capsule_id=__&nick_name="__"
+```
+
+#### Response Form sample
+
+```json
+{
+   "success": true
 }
 ```
 
@@ -576,30 +998,5 @@ http://address:port/comment/reply/"Input the Comment ID"
 ```json
 {
    "success": true
-}
-```
-
-## Users
-
---- 
-
-### Get Authorization
-
-- Get/ `./users/auth`
-    - Get authrization info
-
-- Success Response : Header with Code 200
-- Fail Response : Header with Code 404
-
-#### Request Form Sample
-    
-```json
-http://address:port/users/auth"
-```
-
-#### Response Form Sample
-```json
-{
-   "nick_name": "__"
 }
 ```
