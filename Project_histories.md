@@ -404,7 +404,7 @@ http://address:port/capsule/nick/"Input the Nick"
 }
 ```
 
-### Post Comment
+### Get Comment
     
 - Get/ `./comment/list/:capsule_id`
     - response list of comments
@@ -485,6 +485,8 @@ http://address:port/comment/list/"Input the Capsule Id"
 ]
 ```
 
+### Post Capsules
+
 - Post/ `./comment`
     - Create a Comment
 
@@ -520,7 +522,7 @@ http://address:port/comment/list/"Input the Capsule Id"
 }
 ```
 
-#### Delete Comment
+### Delete Comment
     
 - Delete/ `./comment/:id`
     - Delete a Comment
@@ -541,7 +543,7 @@ http://address:port/comment/"Input the Comment ID"
 }
 ```
 
-#### Delete Reply
+### Delete Reply
     
 - Delete/ `./comment/reply/:id`
     - Delete a Reply
