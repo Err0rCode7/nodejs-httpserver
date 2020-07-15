@@ -3,7 +3,7 @@ const mysql = require('mysql2/promise');
 const config = require('../config/config.js');
 
 const ip = { // 서버 공인아이피
-    address () { return "59.13.134.140" }
+    address () { return "211.248.58.81" } //"59.13.134.140" }
 };
 
 const router = express.Router();

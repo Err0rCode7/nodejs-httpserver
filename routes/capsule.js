@@ -7,7 +7,7 @@ const config = require('../config/config')
 const mysql = require('mysql2/promise');
 
 const ip = { // 서버 공인아이피
-    address () { return "59.13.134.140" }
+    address () { return "211.248.58.81" }//"59.13.134.140" }
 };
 
 const router = express.Router();
@@ -149,6 +149,15 @@ router.get('/nick/:nickName', async (req, res)=>{
 
     console.log("request Ip ( Get Capsules with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    /*
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+    */
 
     const nick_name = req.params.nickName;
     let conn;

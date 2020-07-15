@@ -6,7 +6,7 @@ const multer = require('multer');
 const path = require('path');
 
 const ip = { // 서버 공인아이피 
-    address () { return "59.13.134.140" }
+    address () { return "211.248.58.81" }//"59.13.134.140" }
 };
 
 const router = express.Router();
@@ -68,7 +68,16 @@ router.get('/', async (req, res) => {
 
     console.log("request Ip ( Get User ):",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-    
+
+    /*
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+    */
+
     let conn;
 
     const query = `select user_id, \
@@ -88,6 +97,7 @@ router.get('/', async (req, res) => {
 
         conn = await pool.getConnection();
 
+        
         const result = await conn.query(query);
         let rows = result[0];
 
@@ -389,7 +399,7 @@ router.post('/auth', async (req, res) =>{
     let {user_id, password} = req.body
     
     let conn;
-
+    console.log(user_id, password);
     try {
 
         conn = await pool.getConnection();
@@ -412,8 +422,11 @@ router.post('/auth', async (req, res) =>{
         if (rows.length == 0)
             throw "Exception : Incorrect Id, Password";
 
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(rows[0])); 
+        req.session.nick_name = rows[0].nick_name;
+        await req.session.save(()=> {
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify(rows[0]));
+        })
 
     } catch(e) {
         console.log(e);
