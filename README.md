@@ -865,65 +865,79 @@ http://address:port/comment/list/"Input the Capsule Id"
 ```json
 [
     {
-        nick_name: "nick12",
-        comment: "comment Test1",
-        date_created: "2020-07-09T15:44:27.000Z",
-        date_updated: "2020-07-09T15:44:27.000Z",
-        replies: [ ]
-    },
-    {
-        nick_name: "nick12",
-        comment: "comment Test2",
-        date_created: "2020-07-09T15:44:31.000Z",
-        date_updated: "2020-07-09T15:44:31.000Z",
+        nick_name: "nick11",
+        comment: "Test1",
+        date_created: "2020-07-15T11:49:04.000Z",
+        date_updated: "2020-07-15T11:49:04.000Z",
+        user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg",
         replies: [
             {
+                nick_name: "nick11",
+                comment: "Test5",
+                date_created: "2020-07-15T11:49:39.000Z",
+                date_updated: "2020-07-15T11:49:39.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+            },
+            {
+                nick_name: "nick11",
+                comment: "Test6",
+                date_created: "2020-07-15T11:49:43.000Z",
+                date_updated: "2020-07-15T11:49:43.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+            },
+            {
+                nick_name: "nick11",
+                comment: "Test7",
+                date_created: "2020-07-15T11:49:46.000Z",
+                date_updated: "2020-07-15T11:49:46.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+            },
+            {
                 nick_name: "nick12",
-                comment: "comment Test9",
-                date_created: "2020-07-09T15:46:13.000Z",
-                date_updated: "2020-07-09T15:46:13.000Z"
+                comment: "Test10",
+                date_created: "2020-07-15T11:50:10.000Z",
+                date_updated: "2020-07-15T11:50:10.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162405325.jpg"
+            },
+            {
+                nick_name: "nick11",
+                comment: "Test8",
+                date_created: "2020-07-15T11:49:52.000Z",
+                date_updated: "2020-07-15T11:49:52.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+            },
+            {
+                nick_name: "nick13",
+                comment: "Test10",
+                date_created: "2020-07-15T11:50:16.000Z",
+                date_updated: "2020-07-15T11:50:16.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162490258.jpg"
             }
         ]
     },
     {
-        nick_name: "nick12",
-        comment: "comment Test3",
-        date_created: "2020-07-09T15:44:33.000Z",
-        date_updated: "2020-07-09T15:44:33.000Z",
+        nick_name: "nick11",
+        comment: "Test2",
+        date_created: "2020-07-15T11:49:06.000Z",
+        date_updated: "2020-07-15T11:49:06.000Z",
+        user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg",
         replies: [ ]
     },
     {
-        nick_name: "nick12",
-        comment: "comment Test4",
-        date_created: "2020-07-09T15:44:36.000Z",
-        date_updated: "2020-07-09T15:44:36.000Z",
+        nick_name: "nick11",
+        comment: "Test3",
+        date_created: "2020-07-15T11:49:09.000Z",
+        date_updated: "2020-07-15T11:49:09.000Z",
+        user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg",
         replies: [
             {
-                nick_name: "nick12",
-                comment: "comment Test6",
-                date_created: "2020-07-09T15:46:01.000Z",
-                date_updated: "2020-07-09T15:46:01.000Z"
-            },
-            {
-                nick_name: "nick12",
-                comment: "comment Test7",
-                date_created: "2020-07-09T15:46:05.000Z",
-                date_updated: "2020-07-09T15:46:05.000Z"
-            },
-            {
-                nick_name: "nick12",
-                comment: "comment Test8",
-                date_created: "2020-07-09T15:46:08.000Z",
-                date_updated: "2020-07-09T15:46:08.000Z"
+            nick_name: "nick11",
+            comment: "Test9",
+            date_created: "2020-07-15T11:49:59.000Z",
+            date_updated: "2020-07-15T11:49:59.000Z",
+            user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
             }
         ]
-    },
-    {
-        nick_name: "nick12",
-        comment: "comment Test5",
-        date_created: "2020-07-09T15:44:40.000Z",
-        date_updated: "2020-07-09T15:44:40.000Z",
-        replies: [ ]
     }
 ]
 ```
@@ -941,7 +955,6 @@ http://address:port/comment/list/"Input the Capsule Id"
 - case 1 (Parent Comment)
 ```json
 {
-    "user_id" : "__",
     "capsule_id" : __,
     "nick_name" : "__",
     "conmment": ""
@@ -950,7 +963,6 @@ http://address:port/comment/list/"Input the Capsule Id"
 - case 2 (Child Comment : reply)
 ```json
 {
-    "user_id" : "__",
     "capsule_id" : __,
     "nick_name" : "__",
     "conmment": "",
