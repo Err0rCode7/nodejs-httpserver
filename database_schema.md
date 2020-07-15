@@ -140,16 +140,20 @@ create table `reply`(
 ```
 
 ```sql
-create table `tagMap`(
-    capsule_id
+create table `tags`(
     tag_id int UNSIGNED NOT NULL AUTO_INCREMENT,
-
+    name varchar(15) NOT NULL,
+    primary key(tag_id);
 );
 ```
 
 ```sql
-create table `tags`(
-
+create table `tagMap`(
+    capsule_id int UNSIGNED NOT NULL,
+    tag_id int UNSIGNED NOT NULL AUTO_INCREMENT,
+    primary key(capsule_id, tag_id),
+    CONSTRAINT TAGMAP_CAPSULE_ID_FK foreign key (capsule_id) references capsule (capsule_id) on delete cascade on update cascade,
+    CONSTRAINT TAGMAP_TAG_ID_FK foreign key (tag_id) references tags (tag_id) on delete cascade on update cascade
 );
 ```
 
