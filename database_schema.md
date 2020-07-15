@@ -140,16 +140,27 @@ create table `reply`(
 ```
 
 ```sql
-create table `tag`(
+create table `tagMap`(
+    capsule_id
+    tag_id int UNSIGNED NOT NULL AUTO_INCREMENT,
 
 );
 ```
 
 ```sql
-create table `tagEntry`(
+create table `tags`(
 
 );
 ```
+
+```sql
+create table `sessions`(
+    session_id varchar(128) not null primary,
+    expires unsigned int(11) not null,
+    data mediumtext,
+);
+```
+
 
 ## Procedure
 
