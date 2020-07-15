@@ -7,6 +7,20 @@ const path = require('path');
 const multer = require('multer');
 const mysql = require('mysql2/promise');
 const config = require('./config/config.js');
+const session = require('express-session');
+const mysqlStore = require('express-mysql-session');
+
+const options = {
+    host: config.db().host,
+    port: config.db().port,
+    user: config.db().user,
+    password: config.db().password,
+    database: config.db().database,
+    clearExpired: true,
+    checkExpirationInterval: 60 * 15 * 1000,
+    expiration: 60 * 60 * 4 * 1000
+}
+
 
 // Router
 const contentRouter = require('./routes/content.js');
@@ -22,7 +36,14 @@ const commentRouter = require('./routes/comment.js');
 const app = express();
 
 app.use(express.urlencoded({ extended: true}));
-// Mysql
+
+// session
+app.use(session({
+    secret              : 'jaskl;djfie@#$jc2@#SD#@$(%4',
+    resave              : 'false',
+    saveUninitialized   :  true,
+    store               : new mysqlStore(options)
+}));
 
 // cors : cross-origin http enable
 app.use(cors(config.cors()));
