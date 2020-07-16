@@ -6,7 +6,7 @@ const multer = require('multer');
 const path = require('path');
 
 const ip = { // 서버 공인아이피 
-    address () { return "211.248.58.81" }//"59.13.134.140" }
+    address () { return config.url().newIp }
 };
 
 const router = express.Router();
@@ -487,7 +487,7 @@ router.put('/', async (req, res) => {
 
 router.put('/image', upload.single("file") ,async (req, res) =>{
 
-    console.log("request Ip ( Post User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Put User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     
     const fileInfo = req.file;
@@ -506,6 +506,8 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
     image_name = "${fileName}" \
     where nick_name = "${pre_nick_name}";`;
 
+    const selectQuery = `select image_url, image_name from user where nick_name = '${pre_nick_name}';`;
+
     try {
 
         conn = await pool.getConnection();
@@ -520,11 +522,35 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
             특수문자 예외 처리 필요한 부분
         */
         
+        const selectResult = await conn.query(query);
+        const selectRows = selectResult[0];
+        
+        if(rows.length == 0) {
+            throw "Exception : Cant Find User";
+        }
+
+        const preFileName = selectRows[0].image_name;
+
         const result = await conn.query(query);
         const rows = result[0];
         
         if (rows.affectedRows == 0)
             throw "Exception : Cant Insert User";
+
+        if (preFileName != undefined && preFileName != null) {
+            const preFilePath = `public/images/${preFileName}`;
+            fs.access(preFilePath, fs.constants.F_OK, (err) =>{
+                if (err) throw {name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"};
+            });
+
+            fs.unlink(preFilePath, (err) => {
+                if (err)
+                    throw {name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"}
+                else
+                    console.log(`${filePath} is deleted !`);
+            });
+        } 
+
 
         await conn.commit();
         res.writeHead(200, {'Content-Type':'application/json'});
