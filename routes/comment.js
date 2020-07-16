@@ -2,6 +2,9 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const config = require('../config/config.js');
 
+const ip = { // 서버 공인아이피
+    address () { return config.url().newIp }
+};
 
 const router = express.Router();
 const pool = mysql.createPool(config.db());
@@ -19,10 +22,16 @@ router.get('/list/:capsuleId', async (req, res) => {
                                     c.date_created as parent_date_created, \
                                     c.date_updated as parent_date_updated, \
                                     r.date_created as child_date_created, \
-                                    r.date_updated as child_date_updated \
+                                    r.date_updated as child_date_updated, \
+                                    pu.image_url as parent_image_url, \
+                                    cu.image_url as child_image_url
                                     from comment as c \
                                     LEFT JOIN reply r \
                                     ON c.id = r.parent_id \
+                                    LEFT JOIN user pu \
+                                    ON pu.nick_name = c.nick_name \
+                                    LEFT JOIN user cu \
+                                    ON cu.nick_name = r.nick_name \
                                     where c.capsule_id = ${capsule_id} \
                                     ORDER BY c.id , \
                                     r.id;`;
@@ -52,8 +61,21 @@ router.get('/list/:capsuleId', async (req, res) => {
         let temp_parent_comment;
         let temp_parent_date_created;
         let temp_parent_date_updated;
+        let temp_parent_image_url;
 
         rowCommentList.forEach( item => {
+
+            if ( item.parent_image_url != undefined && ip.address() != config.url().ip) {
+                if (ip.address() != config.url().ip) {
+                    item.parent_image_url = item.parent_image_url.replace(config.url().ip, ip.address());
+                }
+            }
+
+            if ( item.child_image_url != undefined && ip.address() != config.url().ip) {
+                if (ip.address() != config.url().ip) {
+                    item.child_image_url = item.child_image_url.replace(config.url().ip, ip.address());
+                }
+            }
 
             const {parent_nick_name, 
                 child_nick_name, 
@@ -62,7 +84,9 @@ router.get('/list/:capsuleId', async (req, res) => {
                 parent_date_created, 
                 parent_date_updated, 
                 child_date_created, 
-                child_date_updated} = item;
+                child_date_updated,
+                parent_image_url,
+                child_image_url} = item;
 
             if (count == 0){
                 // No Reply
@@ -73,6 +97,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                         comment: parent_comment,
                         date_created: parent_date_created,
                         date_updated: parent_date_updated,
+                        user_image_url: parent_image_url,
                         replies: childList
                     });
 
@@ -82,12 +107,13 @@ router.get('/list/:capsuleId', async (req, res) => {
                     temp_parent_comment = parent_comment;
                     temp_parent_date_created = parent_date_created;
                     temp_parent_date_updated = parent_date_updated;
-
+                    temp_parent_image_url = parent_image_url;
                     childList.push({
                         nick_name: child_nick_name,
                         comment: child_comment,
                         date_created: child_date_created,
-                        date_updated: child_date_updated
+                        date_updated: child_date_updated,
+                        user_image_url: child_image_url
                     });
                     count++;
                 }
@@ -99,6 +125,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                         comment: temp_parent_comment,
                         date_created: temp_parent_date_created,
                         date_updated: temp_parent_date_updated,
+                        user_image_url: temp_parent_image_url,
                         replies: childList
                     });
                     commentList.push({
@@ -106,6 +133,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                         comment: parent_comment,
                         date_created: parent_date_created,
                         date_updated: parent_date_updated,
+                        user_image_url: parent_image_url,
                         replies: []
                     })
                     count = 0;
@@ -116,12 +144,13 @@ router.get('/list/:capsuleId', async (req, res) => {
                     temp_parent_comment = parent_comment;
                     temp_parent_date_created = parent_date_created;
                     temp_parent_date_updated = parent_date_updated;
-
+                    temp_parent_image_url = parent_image_url;
                     childList.push({
                         nick_name: child_nick_name,
                         comment: child_comment,
                         date_created: child_date_created,
-                        date_updated: child_date_updated
+                        date_updated: child_date_updated,
+                        user_image_url: child_image_url,
                     });
                     count++; 
                 }
@@ -153,10 +182,10 @@ router.post('/', async (req, res) => {
 
     const {user_id, nick_name, capsule_id, comment, parent_id} = req.body;
 
-    const createCommentQuery = `insert into comment (user_id, capsule_id, comment, nick_name, date_created ) \
-                                values('${user_id}', ${capsule_id}, '${comment}', '${nick_name}', now());`;
-    const createChildCommentQuery = `insert into reply (user_id, capsule_id, parent_id, comment, nick_name, date_created ) \
-                                values('${user_id}', ${capsule_id}, ${parent_id} ,'${comment}', '${nick_name}', now());`;
+    const createCommentQuery = `insert into comment ( capsule_id, comment, nick_name, date_created ) \
+                                values( ${capsule_id}, '${comment}', '${nick_name}', now());`;
+    const createChildCommentQuery = `insert into reply ( capsule_id, parent_id, comment, nick_name, date_created ) \
+                                values( ${capsule_id}, ${parent_id} ,'${comment}', '${nick_name}', now());`;
     let conn;
     let query;
 
@@ -164,7 +193,7 @@ router.post('/', async (req, res) => {
 
         conn = await pool.getConnection();
 
-        if (user_id == undefined || capsule_id == undefined || comment == undefined || nick_name == undefined) {
+        if ( capsule_id == undefined || comment == undefined || nick_name == undefined) {
             throw "Comment Exception : Undefined Request Body";
         }
 

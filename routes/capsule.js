@@ -7,7 +7,7 @@ const config = require('../config/config')
 const mysql = require('mysql2/promise');
 
 const ip = { // 서버 공인아이피
-    address () { return "211.248.58.81" }//"59.13.134.140" }
+    address () { return config.url().newIp }
 };
 
 const router = express.Router();
