@@ -117,7 +117,7 @@ Develope http-streaming-server
 
 ---
 
-## Follow - 1
+### Follow - 1
 
 ### Post Follow
     
@@ -235,7 +235,7 @@ http://address:port/like?capsule_id=__&nick_name="__"
 
 ---
 
-## Follow - 2
+### Follow - 2
 
 ### Get Follow List
     
@@ -564,7 +564,7 @@ http://address:port/comment/reply/"Input the Comment ID"
 }
 ```
 
-## Users
+### Users
 
 --- 
 
@@ -589,5 +589,145 @@ http://address:port/comment/reply/"Input the Comment ID"
 ```json
 {
    "nick_name": "__"
+}
+```
+
+## Completed - 5
+(2020/07/11 ~ 2020/7/)
+
+### Comment list
+- Update Get-Comment list (Add user_image_url) and Post-Comment,Reply (delete user_id)
+- Add Session (Restful server and android app)
+
+//- Add Tags and TagMap (HashTag)
+--- 
+
+### Get Comment
+    
+- Get/ `./comment/list/:capsule_id`
+    - response list of comments
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+
+#### Request Form Sample
+```
+http://address:port/comment/list/"Input the Capsule Id"
+```
+
+#### Response Form Sample
+
+```json
+[
+    {
+        nick_name: "nick11",
+        comment: "Test1",
+        date_created: "2020-07-15T11:49:04.000Z",
+        date_updated: "2020-07-15T11:49:04.000Z",
+        user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg",
+        replies: [
+            {
+                nick_name: "nick11",
+                comment: "Test5",
+                date_created: "2020-07-15T11:49:39.000Z",
+                date_updated: "2020-07-15T11:49:39.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+            },
+            {
+                nick_name: "nick11",
+                comment: "Test6",
+                date_created: "2020-07-15T11:49:43.000Z",
+                date_updated: "2020-07-15T11:49:43.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+            },
+            {
+                nick_name: "nick11",
+                comment: "Test7",
+                date_created: "2020-07-15T11:49:46.000Z",
+                date_updated: "2020-07-15T11:49:46.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+            },
+            {
+                nick_name: "nick12",
+                comment: "Test10",
+                date_created: "2020-07-15T11:50:10.000Z",
+                date_updated: "2020-07-15T11:50:10.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162405325.jpg"
+            },
+            {
+                nick_name: "nick11",
+                comment: "Test8",
+                date_created: "2020-07-15T11:49:52.000Z",
+                date_updated: "2020-07-15T11:49:52.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+            },
+            {
+                nick_name: "nick13",
+                comment: "Test10",
+                date_created: "2020-07-15T11:50:16.000Z",
+                date_updated: "2020-07-15T11:50:16.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162490258.jpg"
+            }
+        ]
+    },
+    {
+        nick_name: "nick11",
+        comment: "Test2",
+        date_created: "2020-07-15T11:49:06.000Z",
+        date_updated: "2020-07-15T11:49:06.000Z",
+        user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg",
+        replies: [ ]
+    },
+    {
+        nick_name: "nick11",
+        comment: "Test3",
+        date_created: "2020-07-15T11:49:09.000Z",
+        date_updated: "2020-07-15T11:49:09.000Z",
+        user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg",
+        replies: [
+            {
+            nick_name: "nick11",
+            comment: "Test9",
+            date_created: "2020-07-15T11:49:59.000Z",
+            date_updated: "2020-07-15T11:49:59.000Z",
+            user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+            }
+        ]
+    }
+]
+```
+
+### Post Comment
+
+- Post/ `./comment`
+    - Create a Comment
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+- case 1 (Parent Comment)
+```json
+{
+    "capsule_id" : __,
+    "nick_name" : "__",
+    "conmment": ""
+}
+```
+- case 2 (Child Comment : reply)
+```json
+{
+    "capsule_id" : __,
+    "nick_name" : "__",
+    "conmment": "",
+    "parent_id": __
+}
+```
+#### Response Form Sample
+
+```json
+{
+   "success": true
 }
 ```
