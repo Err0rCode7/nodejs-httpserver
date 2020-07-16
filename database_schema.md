@@ -108,7 +108,6 @@ create table `likeCapsule`(
 ```sql
 create table `comment`(
     id int UNSIGNED NOT NULL AUTO_INCREMENT,
-    user_id varchar(15) NOT NULL,
     nick_name varchar(15) character set utf8 NOT NULL,
     capsule_id int UNSIGNED NOT NULL,
     comment varchar(400) character set utf8,
@@ -116,7 +115,6 @@ create table `comment`(
     date_updated TIMESTAMP DEFAULT now() NOT NULL,
     primary key(id),
     CONSTRAINT COMMENT_CAPSULE_ID_FK foreign key (capsule_id) references capsule (capsule_id) on delete cascade on update cascade,
-    CONSTRAINT COMMENT_USER_ID_FK foreign key (user_id) references user (user_id) on delete cascade on update cascade,
     CONSTRAINT COMMENT_NICK_FK foreign key (nick_name) references user (nick_name) on delete cascade on update cascade
 );
 ```
@@ -124,7 +122,6 @@ create table `comment`(
 ```sql
 create table `reply`(
     id int UNSIGNED NOT NULL AUTO_INCREMENT,
-    user_id varchar(15) NOT NULL,
     nick_name varchar(15) character set utf8 NOT NULL,
     capsule_id int UNSIGNED NOT NULL,
     parent_id int UNSIGNED NOT NULL, 
@@ -133,7 +130,6 @@ create table `reply`(
     date_updated TIMESTAMP DEFAULT now() NOT NULL,
     primary key(id),
     CONSTRAINT REPLY_CAPSULE_ID_FK foreign key (capsule_id) references capsule (capsule_id) on delete cascade on update cascade,
-    CONSTRAINT REPLY_USER_ID_FK foreign key (user_id) references user (user_id) on delete cascade on update cascade,
     CONSTRAINT REPLY_NICK_FK foreign key (nick_name) references user (nick_name) on delete cascade on update cascade,
     CONSTRAINT REPLY_PARENT_FK foreign key (parent_id) references comment (id) on delete cascade on update cascade
 );
