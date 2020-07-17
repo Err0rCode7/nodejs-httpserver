@@ -103,7 +103,8 @@ router.get('/', async (req, res) => {
 
         if (ip.address() != config.url().ip) {
             rows.forEach(row => {
-                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+                if(row.image_url != null && row.image_url.match(config.url().ip) !== null)
+                    row.image_url = row.image_url.replace(config.url().ip, ip.address());
             });
         }
 
