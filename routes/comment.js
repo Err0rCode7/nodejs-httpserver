@@ -12,6 +12,15 @@ const pool = mysql.createPool(config.db());
 router.get('/list/:capsuleId', async (req, res) => {
 
     console.log("request Ip ( Get Comment List ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    /*
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+    */
+    
 
     const capsule_id = req.params.capsuleId;
     const selectCommentListQuery = `select \
@@ -180,6 +189,13 @@ router.post('/', async (req, res) => {
 
     console.log("request Ip ( Post Comment ) :",req.connection.remoteAddress.replace('::ffff:', ''));
 
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     const {user_id, nick_name, capsule_id, comment, parent_id} = req.body;
 
     const createCommentQuery = `insert into comment ( capsule_id, comment, nick_name, date_created ) \
@@ -240,6 +256,13 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
 
     console.log("request Ip ( Deleting Comment ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
 
     const id = req.params.id;
     const deleteCommentQuery = `delete from comment where id = ${id};`;

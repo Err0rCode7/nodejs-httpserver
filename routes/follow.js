@@ -14,6 +14,13 @@ router.get('/followlist/:nickName', async (req, res) => {
     console.log("request Ip ( Get Follow List ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const nickName = req.params.nickName;
 
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     const followListQuery = `select \
                                 user.nick_name as nick_name, \
                                 user.first_name as first_name, \
@@ -79,6 +86,13 @@ router.get('/followerlist/:nickName', async (req, res) => {
     console.log("request Ip ( Get Follower List ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const nickName = req.params.nickName;
 
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     const followerListQuery = `select \
                                 user.nick_name as nick_name, \
                                 user.first_name as first_name, \
@@ -138,6 +152,13 @@ router.get('/followerlist/:nickName', async (req, res) => {
 router.post('/', async (req, res) => {
 
     console.log("request Ip ( Post Follow ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
 
     const {nick_name, dest_nick_name} = req.body;
 
@@ -203,6 +224,13 @@ router.post('/', async (req, res) => {
 router.delete('', async (req, res) => {
 
     console.log("request Ip ( Delete follow ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
 
     const {nick_name, dest_nick_name} = req.query;
 

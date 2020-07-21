@@ -65,7 +65,15 @@ const upload = multer({
 router.get('/', async (req, res) => {
 
     console.log("request Ip ( Get Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
-    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');    
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+    /*
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }*/
+
     const query = "select capsule_id, \
                             user_id, \
                             nick_name, \
@@ -146,18 +154,16 @@ router.get('/location', async (req, res) => {
 });
 router.get('/nick/:nickName', async (req, res)=>{
     
-
     console.log("request Ip ( Get Capsules with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
     }
-    */
+    
 
     const nick_name = req.params.nickName;
     let conn;
@@ -285,6 +291,7 @@ router.get('/:capsuleId', async (req, res) => {
     console.log("request Ip ( Get a Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
+    
     const query = `select cap.capsule_id, \
                                 user_id, \
                                 title, \
@@ -459,10 +466,17 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
     console.log("request Ip ( Put Capsule with images ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     let conn;
     
     const filesInfo = req.files
-    const capsule_id = req.body.capsule_id;
+    const nick_name = req.body.nick_name;
     let title = req.body.title;
     let text = req.body.text;
     
@@ -483,7 +497,7 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
         //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
 
-        if (capsule_id == undefined || title == undefined || filesInfo == undefined ) {
+        if (nick_name == undefined || title == undefined || filesInfo == undefined ) {
             throw {name: 'undefinedBodyException', message: "Put Capsule - Capsule_info not exist"};
         }
 
@@ -494,8 +508,9 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
         const updateQuery = `update capsule SET \
                                 title = '${title}', \
                                 status_temp = ${status_temp}, \
-                                text = ${textQuery} \
-                                where capsule_id = ${capsule_id} AND \
+                                text = ${textQuery}, \
+                                status_temp = 0 \
+                                where nick_name = '${nick_name}' AND \
                                 status_temp = 1`;
 
         /*
@@ -583,9 +598,16 @@ router.put('/', async (req, res) => {
     console.log("request Ip ( Put Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     let conn;
-    
-    const {capsule_id} = req.body;
+    console.log(req.body);
+    const {nick_name} = req.body;
     let {text} = req.body;
     let title = req.body.title;
 
@@ -608,7 +630,7 @@ router.put('/', async (req, res) => {
         //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
 
-        if (capsule_id == undefined || title == undefined ) {
+        if ( nick_name == undefined || title == undefined ) {
             throw {name: 'undefinedBodyException', message: "Put Capsule - Capsule_info not exist"};
         }
 
@@ -617,8 +639,9 @@ router.put('/', async (req, res) => {
         const updateQuery = `update capsule SET \
                                 title = '${title}', \
                                 status_temp = ${status_temp}, \
-                                text = ${textQuery} \
-                                where capsule_id = ${capsule_id} AND \
+                                text = ${textQuery}, \
+                                status_temp = 0 \
+                                where nick_name = '${nick_name}' AND \
                                 status_temp = 1`;
 
         /*
@@ -660,6 +683,13 @@ router.delete('/:capsuleId', async (req,res) => {
 
     console.log("request Ip ( Delete Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
 
     let conn;
 
