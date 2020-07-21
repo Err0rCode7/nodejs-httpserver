@@ -129,6 +129,14 @@ router.get('/nick/:nick_name', async (req, res) => {
     console.log("request Ip ( Get User/nick/:nick_name ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
+    
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     const query = `select user_id, \
                         nick_name, \
                         first_name, \
@@ -158,7 +166,8 @@ router.get('/nick/:nick_name', async (req, res) => {
 
         if (ip.address() != config.url().ip) {
             rows.forEach(row => {
-                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+                if (row.image_url != null)
+                    row.image_url = row.image_url.replace(config.url().ip, ip.address());
             });
         }
 
@@ -238,6 +247,13 @@ router.post('/with/image', upload.single("file") ,async (req, res) =>{
     console.log("request Ip ( Post User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     const fileInfo = req.file;
     const {user_id, password, nick_name, first_name, last_name, email} = req.body;
     const fileName = fileInfo.filename;
@@ -327,6 +343,13 @@ router.post('/', async (req, res) => {
     console.log("request Ip ( Post User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     //console.log(req.body);
     const {user_id, password, nick_name, first_name, last_name, email} = req.body;
     let email_id;
@@ -399,8 +422,14 @@ router.post('/auth', async (req, res) =>{
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     let {user_id, password} = req.body
     
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     let conn;
-    console.log(user_id, password);
     try {
 
         conn = await pool.getConnection();
@@ -413,8 +442,6 @@ router.post('/auth', async (req, res) =>{
         password = password.replace("'","\\'").replace('"','\\"');
 
         const query = `select nick_name from user where user_id = "${user_id}" and password = password("${password}");`;   
-
-        
 
         const result = await conn.query(query);
         const rows = result[0];
@@ -445,6 +472,13 @@ router.put('/', async (req, res) => {
 
     console.log("request Ip ( Put User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
 
     const {pre_nick_name, password, new_nick_name} = req.body;
     const query = `update user set \
@@ -491,6 +525,13 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
     console.log("request Ip ( Put User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
     const fileInfo = req.file;
     const {pre_nick_name, password, new_nick_name} = req.body;
     const fileName = fileInfo.filename;
@@ -523,7 +564,7 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
             특수문자 예외 처리 필요한 부분
         */
         
-        const selectResult = await conn.query(query);
+        const selectResult = await conn.query(selectQuery);
         const selectRows = selectResult[0];
         
         if(rows.length == 0) {
@@ -581,6 +622,12 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
 
 router.delete('/:nick_name', async (req, res) =>{
 
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
 
     console.log("request Ip ( Delete User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
