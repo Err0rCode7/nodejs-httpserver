@@ -596,10 +596,10 @@ http://address:port/comment/reply/"Input the Comment ID"
 (2020/07/11 ~ 2020/7/)
 
 ### Comment list
-- Update Get-Comment list (Add user_image_url) and Post-Comment,Reply (delete user_id)
-- Add Session (Restful server and android app)
-
-//- Add Tags and TagMap (HashTag)
+- Update Get-Comment-list Router(Add user_image_url) and Post-Comment,Reply (delete user_id)
+- Update Get-capsules Router (with location, with nick_name, with capsule id)
+- Add Session Router (Restful server and android app)
+- Add Logout Router (Destroy Session)
 --- 
 
 ### Get Comment
@@ -729,5 +729,108 @@ http://address:port/comment/list/"Input the Capsule Id"
 ```json
 {
    "success": true
+}
+```
+
+### Put LockedCapsules
+
+- Put/ `./capsules/lock`
+    - Put a capsule
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+    
+```json
+{
+    "capsule_id" : __,
+    "text": "__",
+    "title": "__",
+    "expire": "YYYY-MM-DD hh:mm:ss",
+    "members": [
+        "friend1_nick",
+        "friedn2_nick"
+    ]
+}
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
+### Put LockedCapsules With Images
+
+- Put/ `./capsules/lock/images`
+    - Put a capsule with image
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+    
+```json
+@multipart
+"capsule_id" : __,
+"text": "__",
+"title": "__",
+"expire": "YYYY-MM-DD hh:mm:ss",
+"members": [
+    "friend1_nick",
+    "friedn2_nick"
+]
+"file":
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
+### Check Authorized Session
+    
+- Get/ `./comment/list/:capsule_id`
+    - response nick_name if session in header is valid;
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+
+#### Request Form Sample
+```
+http://address:port/comment/list/"Input the Capsule Id"
+```
+
+#### Response Form Sample
+```json
+{
+    "nick_name": "__"
+}
+```
+
+### Post User Logout
+
+- Post/ `./users/logout`
+    - Logout user's session
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+
+#### Request Form Sample
+    
+```json
+
+```
+
+#### Response Form Sample
+```json
+{
+   "success": "__"
 }
 ```
