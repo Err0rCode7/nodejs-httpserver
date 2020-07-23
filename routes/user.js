@@ -78,6 +78,8 @@ router.get('/', async (req, res) => {
     }
     */
 
+    
+
     let conn;
 
     const query = `select user_id, \
@@ -93,6 +95,8 @@ router.get('/', async (req, res) => {
                         image_url, \
                         image_name \
                     from user;`;
+
+    const ss = `select * from sessions where data =`;
     try {
 
         conn = await pool.getConnection();
@@ -125,10 +129,8 @@ router.get('/', async (req, res) => {
 
 router.get('/nick/:nick_name', async (req, res) => {
 
-
     console.log("request Ip ( Get User/nick/:nick_name ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-
     
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
@@ -188,7 +190,6 @@ router.get('/nick/:nick_name', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
 
-
     console.log("request Ip ( Get User/:id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
@@ -240,7 +241,6 @@ router.get('/:id', async (req, res) => {
     }
     
 });
-
 
 router.post('/with/image', upload.single("file") ,async (req, res) =>{
 
@@ -422,12 +422,6 @@ router.post('/auth', async (req, res) =>{
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     let {user_id, password} = req.body
     
-    if(req.session.nick_name == undefined){
-        console.log("   Session nick is undefined ");
-        res.writeHead(401, {'Content-Type':'application/json'});
-        res.end();
-        return;
-    }
 
     let conn;
     try {
@@ -467,6 +461,37 @@ router.post('/auth', async (req, res) =>{
 
 });
 
+router.post('/logout', async (req, res) =>{
+
+    console.log("request Ip ( Post Logout ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    try {
+
+
+    if(req.session == undefined) {
+        throw "Exception : sessions is undefined";
+    }
+
+    await req.session.destroy(err=>{
+        throw "Exception : Failed Session Destruction";
+    })
+
+    res.writeHead(200, {'Content-Type':'application/json'});
+    res.end('{"success": true}'); //json object로 변경
+
+    } catch(e) {
+        console.log(e);
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+    //res.end('{"success": false}'); 
+    } finally {
+        conn.release();
+    }
+
+});
+
+
 router.put('/', async (req, res) => {
 
 
@@ -504,10 +529,14 @@ router.put('/', async (req, res) => {
         const rows = result[0];
         if (rows.affectedRows == 0)
             throw "Exception : Cant Update User";
-
+        
         await conn.commit();
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": true}'); 
+
+        req.session.nick_name = new_nick_name;
+        await req.session.save(()=>{
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end('{"success": true}'); 
+        });
         
     } catch (e) {
         await conn.rollback();
@@ -556,7 +585,7 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
 
         await conn.beginTransaction();
 
-        if(pre_nick_name == undefined || password == undefined || new_nick_name == undefined) {
+        if(pre_nick_name == undefined || password == undefined || new_nick_name == undefined || fileInfo == undefined) {
                 throw {name: 'undefinedBodyException', message: "Put User With Image - user_info not exist"};
         }
 
@@ -567,7 +596,7 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
         const selectResult = await conn.query(selectQuery);
         const selectRows = selectResult[0];
         
-        if(rows.length == 0) {
+        if(selectRows.length == 0) {
             throw "Exception : Cant Find User";
         }
 
@@ -589,14 +618,15 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
                 if (err)
                     throw {name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"}
                 else
-                    console.log(`${filePath} is deleted !`);
+                    console.log(`${preFilePath} is deleted !`);
             });
         } 
 
-
-        await conn.commit();
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end('{"success": true}'); 
+        req.session.nick_name = new_nick_name;
+        await req.session.save(()=>{
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end('{"success": true}'); 
+        });
 
     } catch (error) {
         console.log(error);
