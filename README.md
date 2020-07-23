@@ -136,6 +136,7 @@ http://address:port/users/"Input the user_id"
 
 - Success Response : Header with Code 200
 - Fail Response : Header with Code 404
+- Unauthorized user Response : Header with Code 401 
 
 #### Request Form Sample
     
@@ -163,15 +164,13 @@ http://address:port/users/"Input the user_id"
     - Post authrization info
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
 
 #### Request Form Sample
     
 ```json
-{
-   "user_id": "__",
-   "password": __,
-}
+@Header(has SessionID)
+http://address:port/users/logout/
 ```
 
 #### Response Form Sample
@@ -181,13 +180,35 @@ http://address:port/users/"Input the user_id"
 }
 ```
 
+### Post User Logout
+
+- Post/ `./users/logout`
+    - Logout user's session
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+
+#### Request Form Sample
+    
+```json
+
+```
+
+#### Response Form Sample
+```json
+{
+   "success": "__"
+}
+```
+
 ### Put A User
 
 - Put/ `./users/`
     - Put a user
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
     
@@ -213,7 +234,8 @@ http://address:port/users/"Input the user_id"
     - Put a user with image
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
 
@@ -242,7 +264,8 @@ http://address:port/users/"Input the user_id"
     - Delete a user
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
 
@@ -269,7 +292,7 @@ http://address:port/users/"Input the nick_name"
     - Response all capsules 
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
 
 #### Request Form Sample
     
@@ -317,7 +340,8 @@ http://address:port/capsules"
     - Response capsules within 100 meter
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+
 
 #### Request Form Sample
     
@@ -329,21 +353,24 @@ http://address:port/capsules/location?lnt=__&lat=__
 ```json
 [
     {
-    capsule_id: 68,
-    user_id: "hhheum",
-    title: null,
-    likes: 0,
-    views: 0,
-    text: null,
-    date_created: "2020-07-09T16:27:04.000Z",
-    date_opened: "2020-07-09T16:27:04.000Z",
-    status_temp: 1,
-    location: {
-            x: 12,
-            y: 12
+        capsule_id: 78,
+        nick_name: "nick14",
+        title: "test0",
+        likes: 0,
+        views: 0,
+        text: "sdfas",
+        date_created: "2020-07-19T13:30:10.000Z",
+        date_opened: "2020-07-19T13:30:10.000Z",
+        status_temp: 0,
+        location: {
+            x: 10,
+            y: 10
         },
-    nick_name: "nick12",
-    Dist: "0.00000"
+        Dist: "0.00000",
+        expire: null,
+        status_lock: 0,
+        key_count: 0,
+        used_key_count: 0
     },
 
     {
@@ -370,48 +397,48 @@ http://address:port/capsules/nick/"Input the nick"
 ```json
 [
     {
-        capsule_id: 63,
-        user_id: "hhheum",
-        nick_name: "nick12",
-        title: "hhh",
-        text: "hhh",
+        capsule_id: 93,
+        user_id: "mingso0",
+        nick_name: "nick14",
+        title: "lockTest1",
+        text: "lockTest1",
         likes: 0,
         views: 0,
-        date_created: "2020-07-07T13:37:01.000Z",
-        date_opened: "2020-07-07T13:37:01.000Z",
+        date_created: "2020-07-23T13:09:25.000Z",
+        date_opened: "2020-07-23T13:09:25.000Z",
         status_temp: 0,
-        lat: 56,
-        lng: 100,
-        content: [
-            {
-                content_id: null,
-                url: null
-            }
+        lat: 13,
+        lng: 13,
+        expire: "2020-12-12T02:11:11.000Z",
+        status_lock: 1,
+        key_count: 3,
+        used_key_count: 0,
+        content: [ ],
+        members: [
+            "nick16",
+            "nick17",
+            "nick18"
         ]
     },
     {
-        capsule_id: 62,
-        user_id: "hhheum",
-        nick_name: "nick12",
-        title: "소영이랑 첫 여행!!",
-        text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~~",
+        capsule_id: 92,
+        user_id: "mingso0",
+        nick_name: "nick14",
+        title: null,
+        text: null,
         likes: 0,
         views: 0,
-        date_created: "2020-07-01T05:22:17.000Z",
-        date_opened: "2020-07-01T05:22:17.000Z",
-        status_temp: 0,
-        lat: 35.1567,
-        lng: 129.1524,
-        content: [
-            {
-                content_id: 58,
-                url: "http://118.44.168.218:7070/contents/1593581760709.jpg"
-            },
-            {
-                content_id: 59,
-                url: "http://118.44.168.218:7070/contents/1593581760717.jpg"
-            }
-        ]
+        date_created: "2020-07-23T13:09:24.000Z",
+        date_opened: "2020-07-23T13:09:24.000Z",
+        status_temp: 1,
+        lat: 13,
+        lng: 13,
+        expire: null,
+        status_lock: 0,
+        key_count: 0,
+        used_key_count: 0,
+        content: [ ],
+        members: [ ]
     }
 ]
 ```
@@ -433,22 +460,27 @@ http://address:port/capsules/nick/"Input the capsule_id"
 #### Response Form Sample
 ```json
 {
-    capsule_id: 25,
+    capsule_id: 84,
     user_id: "mingso0",
-    title: "당일치기 제주도 !!",
-    text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~",
+    nick_name: "nick14",
+    title: "lockTest1",
+    text: "lockTest1",
     likes: 0,
     views: 0,
-    date_created: "2020-06-14T19:30:09.000Z",
-    date_opened: "2020-06-14T19:30:09.000Z",
+    date_created: "2020-07-20T12:15:34.000Z",
+    date_opened: "2020-07-20T12:15:34.000Z",
     status_temp: 0,
-    lat: 35.1286,
-    lng: 126.8066,
-    content: [
-        {
-        content_id: 48,
-        url: "http://59.13.134.140:7070/contents/1592163019288.jpg"
-        }
+    lat: 37.6057548522949,
+    lng: 127.009429931641,
+    expire: "2020-12-12T02:11:11.000Z",
+    status_lock: 1,
+    key_count: 3,
+    used_key_count: 0,
+    content: [ ],
+    members: [
+        "nick16",
+        "nick17",
+        "nick18"
     ]
 }
 ```
@@ -459,7 +491,8 @@ http://address:port/capsules/nick/"Input the capsule_id"
     - Post a capsule stored temporally
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
     
@@ -484,15 +517,16 @@ http://address:port/capsules/nick/"Input the capsule_id"
     - Put a capsule
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
     
 ```json
 {
-	"capsule_id" : __,
-	"text": __,
-    "title": __
+    "capsule_id" : __,
+    "text": "__",
+    "title": "__"
 }
 ```
 
@@ -509,7 +543,8 @@ http://address:port/capsules/nick/"Input the capsule_id"
     - Put a capsule with image
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
     
@@ -528,13 +563,76 @@ http://address:port/capsules/nick/"Input the capsule_id"
 }
 ```
 
+### Put LockedCapsules
+
+- Put/ `./capsules/lock`
+    - Put a capsule
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+    
+```json
+{
+    "capsule_id" : __,
+    "text": "__",
+    "title": "__",
+    "expire": "YYYY-MM-DD hh:mm:ss",
+    "members": [
+        "friend1_nick",
+        "friedn2_nick"
+    ]
+}
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
+### Put LockedCapsules With Images
+
+- Put/ `./capsules/lock/images`
+    - Put a capsule with image
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+    
+```json
+@multipart
+"capsule_id" : __,
+"text": "__",
+"title": "__",
+"expire": "YYYY-MM-DD hh:mm:ss",
+"members": [
+    "friend1_nick",
+    "friedn2_nick"
+]
+"file":
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
 ### Delete Capsule With Capsule_id
 
 - Delete/ `./capsules/:capsuleId`
     - Delete a capsule with capsule_id
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
     
@@ -559,7 +657,7 @@ http://address:port/capsules/"Input the capsule_id"
     - Response a content
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
 
 #### Request Form Sample
     
@@ -611,7 +709,7 @@ http://address:port/contents/capsule-id/"Input the capsule_id"
     - Post contents
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
 
 #### Request Form Sample
 ```json
@@ -736,7 +834,8 @@ http://address:port/follow/followerlist/"Input the Nick"
     - create a row of follow table in DB
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
     
@@ -779,7 +878,8 @@ http://address:port/follow/followerlist/"Input the Nick"
     - delete a row of follow table in DB 
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
 ```json
@@ -804,7 +904,8 @@ http://address:port/like?nick_name="__"&dest_nick_name="__"
     - create a row of like table in DB 
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
     
 #### Request Form sample
 ```json
@@ -828,7 +929,8 @@ http://address:port/like?nick_name="__"&dest_nick_name="__"
     - delete a row of like table in DB 
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
     
 #### Request Form sample
 ```
@@ -948,7 +1050,8 @@ http://address:port/comment/list/"Input the Capsule Id"
     - Create a Comment
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
     
@@ -983,7 +1086,8 @@ http://address:port/comment/list/"Input the Capsule Id"
     - Delete a Comment
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
     
@@ -1004,7 +1108,8 @@ http://address:port/comment/"Input the Comment ID"
     - Delete a Reply
 
 - Success Response : Header with Code 200
-- Fail Response : Header with Code 404
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
 
 #### Request Form Sample
     
@@ -1016,5 +1121,29 @@ http://address:port/comment/reply/"Input the Comment ID"
 ```json
 {
    "success": true
+}
+```
+
+## Session
+
+--- 
+
+### Check Authorized Session
+    
+- Get/ `./comment/list/:capsule_id`
+    - response nick_name if session in header is valid;
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+
+#### Request Form Sample
+```
+http://address:port/comment/list/"Input the Capsule Id"
+```
+
+#### Response Form Sample
+```json
+{
+    "nick_name": "__"
 }
 ```
