@@ -157,4 +157,3 @@ E/Google Maps Android API: In the Google Developer Console (https://console.d
     	API Key: AIzaSyAGrJkq5uUVt6HCkO7FfBqj-M1nUlS1Omk
     	Android Application (<cert_fingerprint>;<package_name>): 22:F3:A3:45:B5:5D:5D:52:93:7F:00:B3:F4:39:51:94:D9:DE:B6:E0;com.team11.capsule_time
 E/libprocessgroup: set_timerslack_ns write failed: Operation not permitted
-
