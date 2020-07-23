@@ -123,10 +123,26 @@ router.get('/location', async (req, res) => {
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const {lng, lat} = req.query;
-    const query = `select *, U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) as Dist \
-                    from capsule \
-                    where U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) <= 0.01 \
-                    order by Dist;`
+    const query = `select   capsule.capsule_id, \
+                            capsule.nick_name, \
+                            title, \
+                            likes, \
+                            views, \
+                            text, \
+                            date_created, \
+                            date_opened, \
+                            status_temp, \
+                            location, \
+                            U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) as Dist,
+                            expire, \
+                            status_lock, \
+                            key_count, \
+                            used_key_count \
+                        from capsule \
+                        LEFT JOIN lockedCapsule lc \
+                        ON capsule.capsule_id = lc.capsule_id \
+                        where U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) <= 0.01 \
+                        order by Dist;`
     
     let conn;
     try {
@@ -138,8 +154,13 @@ router.get('/location', async (req, res) => {
 
         const result = await conn.query(query);
         let rows = result[0];
-
-        //rows.unshift({"success":true});
+        rows.forEach( (row)=>{
+            if (row.status_lock == null){
+                row.status_lock = 0;
+                row.key_count = 0;
+                row.used_key_count = 0;
+            }
+        });
         res.writeHead(200, {'Content-Type':'application/json'});
         res.end(JSON.stringify(rows));
         
@@ -152,24 +173,24 @@ router.get('/location', async (req, res) => {
         conn.release();
     }
 });
+
 router.get('/nick/:nickName', async (req, res)=>{
     
     console.log("request Ip ( Get Capsules with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
-    }
+    }*/
     
-
     const nick_name = req.params.nickName;
     let conn;
     const query = `select cap.capsule_id, \
                             user_id, \
-                            nick_name, \
+                            cap.nick_name, \
                             title, \
                             text, \
                             likes, \
@@ -179,13 +200,22 @@ router.get('/nick/:nickName', async (req, res)=>{
                             status_temp, \
                             y(location) as lat, x(location) as lng, \
                             content_id, \
-                            url \
+                            url, \
+                            lc.expire, \
+                            lc.status_lock, \
+                            lc.key_count, \
+                            lc.used_key_count,
+                            scu.nick_name as member \
                         from capsule as cap \
                         LEFT JOIN content as ct \
                         ON cap.capsule_id = ct.capsule_id \
+                        LEFT JOIN lockedCapsule as lc \
+                        ON cap.capsule_id = lc.capsule_id \
+                        LEFT JOIN sharedCapsuleUser as scu \
+                        ON cap.capsule_id = scu.capsule_id \
                         where cap.nick_name = '${nick_name}' \
+                        group by cap.capsule_id, ct.content_id, scu.id \
                         ORDER BY capsule_id DESC;`;
-
     try {
 
         conn = await pool.getConnection();
@@ -202,10 +232,20 @@ router.get('/nick/:nickName', async (req, res)=>{
         } else {
 
             let index = 0;
-            let i = 0;
+            let i = 0;          // capsule_count
+            let c_index = 0;    // content_count
+            let m_flag = 1;
             let content = [];
+            let members = [];
             let capsules = [];
-            let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened, status_temp, lat, lng } = rows[0];
+            let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened, status_temp, lat, lng, expire, status_lock, key_count, used_key_count} = rows[0];
+
+            if (status_lock == null){
+                rows[0].status_lock = 0;
+                rows[0].key_count = 0;
+                rows[0].used_key_count = 0;
+            }
+                
             capsules.push({
                 capsule_id,
                 user_id,
@@ -219,29 +259,72 @@ router.get('/nick/:nickName', async (req, res)=>{
                 status_temp,
                 lat,
                 lng,
-                content:null
+                expire, 
+                status_lock, 
+                key_count, 
+                used_key_count,
+                content:null,
+                members:null
             });
+
             rows.forEach( item => {
                 
-                if ( item.url != undefined && ip.address() != config.url().ip) {
+                if (item.url != undefined && ip.address() != config.url().ip) {
                     if (ip.address() != config.url().ip) {
                         item.url = item.url.replace(config.url().ip, ip.address());
                     }
                 }
+
+                if (item.status_lock == null) {
+                    item.status_lock = 0;
+                    item.key_count = 0;
+                    item.used_key_count = 0;
+
+                }
+
+
                 if (item != undefined) {
-                    if (item.capsule_id == capsules[index].capsule_id ) {
-                        content.push({
-                            content_id: item.content_id,
-                            url: item.url
-                        });
+                    if (item.capsule_id == capsules[index].capsule_id) {
+                        if (c_index == 0) {
+                            if (item.content_id != null ){
+                                content.push({
+                                    content_id: item.content_id,
+                                    url: item.url
+                                });
+                                c_index++;
+                            }
+                        }
+
+                        if (c_index > 0) {
+                            if (content[c_index - 1].content_id != item.content_id && item.content_id != null) {
+                                content.push({
+                                    content_id: item.content_id,
+                                    url: item.url
+                                })
+                                m_flag = 0;
+                                c_index++;
+                            }
+                        }
+
+                        if (m_flag == 1 && item.member != null) {
+                            members.push(item.member);
+                        }
+
                         if (rows.length - 1  == i) {
                             capsules[index].content = content;
+                            capsules[index].members = members;
                         }
-                    } else {
+
+                    } else if (item.capsule_id != capsules[index].capsule_id) {
                         capsules[index].content = content;
+                        capsules[index].members = members;
+                        m_flag = 1;
+                        c_index, m_index = 0, 0;
                         index = index + 1;
                         content = [];
-    
+                        members = [];
+                        
+
                         capsules[index] = {
                             capsule_id: item.capsule_id,
                             user_id: item.user_id,
@@ -255,16 +338,31 @@ router.get('/nick/:nickName', async (req, res)=>{
                             status_temp: item.status_temp,
                             lat: item.lat,
                             lng: item.lng,
-                            content:null
+                            expire: item.expire, 
+                            status_lock: item.status_lock, 
+                            key_count: item.key_count, 
+                            used_key_count: item.used_key_count,
+                            content:null,
+                            members:null
                         }
-    
-                        content.push({
-                            content_id: item.content_id,
-                            url: item.url
-                        });
+
+                        if (status_lock == null)
+                            capsules[index].status_lock = 0;
+
+                        if (item.content_id != null) {
+                            content.push({
+                                content_id: item.content_id,
+                                url: item.url
+                            })
+                            c_index++;
+                        }
+                        if (item.member != null) {
+                            members.push(item.member);
+                        }
     
                         if (rows.length - 1  == i) {
                             capsules[index].content = content;
+                            capsules[index].members = members;
                         }
                     }
                 }
@@ -285,78 +383,88 @@ router.get('/nick/:nickName', async (req, res)=>{
         conn.release();
     }
 });
+
 router.get('/:capsuleId', async (req, res) => { 
 
     
     console.log("request Ip ( Get a Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
+    const capsule_id = req.params.capsuleId;
     
     const query = `select cap.capsule_id, \
-                                user_id, \
-                                title, \
-                                text, \
-                                likes, \
-                                views, \
-                                date_created, \
-                                date_opened, \
-                                status_temp, \
-                                y(location) as lat, x(location) as lng, \
-                                content_id, \
-                                url \
-                            from capsule as cap \
-                            JOIN content as ct \
-                            ON cap.capsule_id = ct.capsule_id AND \
-                            ct.capsule_id = ${req.params.capsuleId};`
-
-    const query_temp_capsule = `select capsule_id, \
-                                        user_id, \
-                                        title, \
-                                        text, \
-                                        likes, \
-                                        views, \
-                                        date_created, \
-                                        date_opened, \
-                                        status_temp, \
-                                        y(location) as lat, x(location) as lng \
-                                        from capsule \
-                                        where capsule_id = ${req.params.capsuleId} AND \
-                                            status_temp = 1;`;
+                            user_id, \
+                            cap.nick_name, \
+                            title, \
+                            text, \
+                            likes, \
+                            views, \
+                            date_created, \
+                            date_opened, \
+                            status_temp, \
+                            y(location) as lat, x(location) as lng, \
+                            content_id, \
+                            url, \
+                            lc.expire, \
+                            lc.status_lock, \
+                            lc.key_count, \
+                            lc.used_key_count,
+                            scu.nick_name as member \
+                        from capsule as cap \
+                        LEFT JOIN content as ct \
+                        ON cap.capsule_id = ct.capsule_id \
+                        LEFT JOIN lockedCapsule as lc \
+                        ON cap.capsule_id = lc.capsule_id \
+                        LEFT JOIN sharedCapsuleUser as scu \
+                        ON cap.capsule_id = scu.capsule_id \
+                        where cap.capsule_id = ${capsule_id} \
+                        group by cap.capsule_id, ct.content_id, scu.id \
+                        ORDER BY capsule_id DESC;`;
 
     let conn;
-
     try {
 
         conn = await pool.getConnection();
 
-        if (req.params.capsuleId == undefined)
+        if (capsule_id == undefined)
             throw "Get-URL-Capsule Exception - need capsuleId"
 
         
         let result = await conn.query(query);
-        let result_temp = await conn.query(query_temp_capsule);
         let rows = result[0];
-        let rows_temp = result_temp[0];
-        let resJson = [];
-        if (rows.length == 0 && rows_temp.length == 0)
+        let capsules = [];
+        if (rows.length == 0)
             throw "Exception : Cant Find Capsule with capsule_id";
 
-        if (rows.length != 0) {
-            
-            const {capsule_id, user_id, title, text, likes, views, date_created, date_opened, status_temp, lat, lng} = rows[0];
-            let content = [];
+        if (rows.length != 0) {    
+
             rows.forEach( item => {
                 if ( item.url != undefined && ip.address() != config.url().ip) {
                     if (ip.address() != config.url().ip) {
                         item.url = item.url.replace(config.url().ip, ip.address());
                     }
                 }
-                content.push({content_id: item.content_id, url: item.url});
             });
-    
-            const rowsJson = {
+
+            let index = 0;
+            let i = 0;          // capsule_count
+            let c_index = 0;    // content_count
+            let m_flag = 1;
+            let content = [];
+            let members = [];
+
+            let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened, status_temp, lat, lng, expire, status_lock, key_count, used_key_count} = rows[0];
+
+            if (status_lock == null){
+                rows[0].status_lock = 0;
+                rows[0].key_count = 0;
+                rows[0].used_key_count = 0;
+            }
+                
+            capsules.push({
                 capsule_id,
                 user_id,
+                nick_name,
                 title,
                 text,
                 likes,
@@ -366,22 +474,119 @@ router.get('/:capsuleId', async (req, res) => {
                 status_temp,
                 lat,
                 lng,
-                content: content
-            };
-            resJson.push(rowsJson);
-        } 
-        
-        if (rows_temp != 0) {
-            //console.log(rows_temp);
-            rows_temp.forEach( tempCapsule => {
-                rows_temp[0].content = null;
-                resJson.push(tempCapsule);
+                expire, 
+                status_lock, 
+                key_count, 
+                used_key_count,
+                content:null,
+                members:null
+            });
+
+            rows.forEach( item => {
+                
+                if (item.url != undefined && ip.address() != config.url().ip) {
+                    if (ip.address() != config.url().ip) {
+                        item.url = item.url.replace(config.url().ip, ip.address());
+                    }
+                }
+
+                if (item.status_lock == null) {
+                    item.status_lock = 0;
+                    item.key_count = 0;
+                    item.used_key_count = 0;
+                }
+
+                if (item != undefined) {
+                    if (item.capsule_id == capsules[index].capsule_id) {
+                        
+                        if (c_index == 0) {
+                            if (item.content_id != null ){
+                                content.push({
+                                    content_id: item.content_id,
+                                    url: item.url
+                                });
+                                c_index++;
+                                
+                            }
+                        }
+
+                        if (c_index > 0) {
+                            if (content[c_index - 1].content_id != item.content_id && item.content_id != null) {
+                                content.push({
+                                    content_id: item.content_id,
+                                    url: item.url
+                                })
+                                m_flag = 0;
+                                c_index++;
+                            }
+                        }
+
+                        if (m_flag == 1 && item.member != null) {
+                            members.push(item.member);
+                        }
+
+                        if (rows.length - 1  == i) {
+                            capsules[index].content = content;
+                            capsules[index].members = members;
+                        }
+
+                    } else if (item.capsule_id != capsules[index].capsule_id) {
+                        capsules[index].content = content;
+                        capsules[index].members = members;
+                        m_flag = 1;
+                        c_index, m_index = 0, 0;
+                        index = index + 1;
+                        content = [];
+                        members = [];
+                        
+                        capsules[index] = {
+                            capsule_id: item.capsule_id,
+                            user_id: item.user_id,
+                            nick_name: item.nick_name,
+                            title: item.title,
+                            text: item.text,
+                            likes: item.likes,
+                            views: item.views,
+                            date_created: item.date_created,
+                            date_opened: item.date_opened,
+                            status_temp: item.status_temp,
+                            lat: item.lat,
+                            lng: item.lng,
+                            expire: item.expire, 
+                            status_lock: item.status_lock, 
+                            key_count: item.key_count, 
+                            used_key_count: item.used_key_count,
+                            content:null,
+                            members:null
+                        }
+
+                        if (status_lock == null)
+                            capsules[index].status_lock = 0;
+
+                        if (item.content_id != null) {
+                            content.push({
+                                content_id: item.content_id,
+                                url: item.url
+                            })
+                            c_index++;
+                        }
+                        if (item.member != null) {
+                            members.push(item.member);
+                        }
+    
+                        if (rows.length - 1  == i) {
+                            capsules[index].content = content;
+                            capsules[index].members = members;
+                        }
+                    }
+                }
+                i = i + 1;
             });
         } 
-
-        //console.log(resJson);
+        
+        //console.log(capsules);
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(resJson[0]));
+        res.end(JSON.stringify(capsules[0]));
 
         //console.log(temp);
         //resJson.unshift({"success":true});
@@ -476,9 +681,8 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
     let conn;
     
     const filesInfo = req.files
-    const nick_name = req.body.nick_name;
-    let title = req.body.title;
-    let text = req.body.text;
+    const capsule_id = req.body.capsule_id;
+    let {title, text} = req.body;
     
     // mysql ' " exception control
     title = title.replace("'","\\'").replace('"','\\"');
@@ -497,7 +701,7 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
         //console.log(req.files[0]);
         //console.log(req.body.capsule_id);
 
-        if (nick_name == undefined || title == undefined || filesInfo == undefined ) {
+        if (capsule_id == undefined || title == undefined || filesInfo == undefined ) {
             throw {name: 'undefinedBodyException', message: "Put Capsule - Capsule_info not exist"};
         }
 
@@ -510,8 +714,8 @@ router.put('/with/images', upload.array("file"), async (req, res) => {
                                 status_temp = ${status_temp}, \
                                 text = ${textQuery}, \
                                 status_temp = 0 \
-                                where nick_name = '${nick_name}' AND \
-                                status_temp = 1`;
+                                where capsule_id = ${capsule_id} AND \
+                                status_temp = 1;`;
 
         /*
         const capsule = {
@@ -607,9 +811,216 @@ router.put('/', async (req, res) => {
 
     let conn;
     console.log(req.body);
-    const {nick_name} = req.body;
-    let {text} = req.body;
-    let title = req.body.title;
+    const {capsule_id} = req.body;
+    const status_temp = 0;
+    let {text, title} = req.body;
+    
+    
+    // mysql ' " exception control
+    title = title.replace("'","\\'").replace('"','\\"');
+
+    let textQuery = null;
+    if (text != undefined){
+        text = text.replace("'","\\'").replace('"','\\"');
+        textQuery = '\'' + text + '\'';
+    }
+        
+
+    try {
+
+        conn = await pool.getConnection();
+
+
+        if ( title == undefined || capsule_id == undefined ) {
+            throw {name: 'undefinedBodyException', message: "Put Capsule - Capsule_info not exist"};
+        }
+
+        
+
+        const updateQuery = `update capsule SET \
+                                title = '${title}', \
+                                status_temp = ${status_temp}, \
+                                text = ${textQuery}, \
+                                status_temp = 0 \
+                                where status_temp = 1 AND \
+                                capsule_id = ${capsule_id};`;
+        // DB Transaction Start
+        await conn.beginTransaction();
+        const updResult = await conn.query(updateQuery);
+
+        if (updResult[0].affectedRows == 0)
+            throw {name: 'putCapsuleNotUpdateException', message: "Put Capsule-Not-Update Error"};
+        
+        await conn.commit();
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": true}');
+
+    } catch (e) {
+
+        await conn.rollback();
+        console.log(e.message);
+
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+
+});
+
+// LockedCapsule 저장
+router.put('/lock/images', upload.array("file"), async (req, res) => {
+
+
+    console.log("request Ip ( Put Capsule with images ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
+    let conn;
+    
+    const filesInfo = req.files
+    const capsule_id = req.body.capsule_id;
+    let {title, text} = req.body;
+    
+    // mysql ' " exception control
+    title = title.replace("'","\\'").replace('"','\\"');
+
+    let textQuery = null;
+    if (text != undefined){
+        text = text.replace("'","\\'").replace('"','\\"');
+        textQuery = '\'' + text + '\'';
+    }
+    
+
+    try {
+
+        conn = await pool.getConnection();
+
+        if (capsule_id == undefined || title == undefined || filesInfo == undefined ) {
+            throw {name: 'undefinedBodyException', message: "Put Put LockedCapsule - Capsule_info not exist"};
+        }
+
+        const status_temp = 0;
+
+        let insertQuerys = "";
+
+        const updateQuery = `update capsule SET \
+                                title = '${title}', \
+                                status_temp = ${status_temp}, \
+                                text = ${textQuery}, \
+                                status_temp = 0 \
+                                where capsule_id = ${capsule_id} AND \
+                                status_temp = 1;`;
+
+        const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length});`;
+
+       await filesInfo.forEach( item =>{
+
+        const content_name = item.filename;
+        const url = "http://"+ config.url().ip + ":" + config.url().port + "/contents/" + content_name;
+        const extension = path.extname(item.originalname);
+        const size = item.size;
+        
+        const content = {
+            content_name,
+            capsule_id,
+            url,
+            extension,
+            size
+        };
+        
+        const insertQuery = `insert into \
+                                content (content_name, capsule_id, url, extension, size) \
+                                value('${content_name}', '${capsule_id}', '${url}', '${extension}', '${size}'); `
+        
+        insertQuerys = insertQuerys + insertQuery;
+
+        });
+        // DB Transaction Start
+        await conn.beginTransaction();
+        const updResult = await conn.query(updateQuery + lockedCapsuleQuery);
+        const insResult = await conn.query(insertQuerys);
+
+        if (updResult[0].affectedRows == 0)
+            throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule-Not-Update Error"};
+        
+        if (updResult[1].affectedRows == 0)
+            throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule(lockedCapsule)-Not-Insert Error"};
+
+        insResult.forEach( result => {
+            if(result == undefined)
+                return;
+            if (result.affectedRows == 0)
+                throw {name: 'putCapsuleNotInsertException', message: "Put Put LockedCapsule(Content)-Not-Insert Error"};
+        })
+
+        let sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values (?, ${capsule_id});`
+        let sharedCapsuleUserResult;
+
+        if (members.length > 0){
+            members.forEach(async (member) => {
+                sharedCapsuleUserResult = await conn.query(sharedCapsuleUserQuery, member);
+                console.log(sharedCapsuleUserResult);
+                if (sharedCapsuleUserResult[0].affectedRows == 0)
+                    throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule-SharedMember-Not-Insert Error"};
+            })
+        }
+        await conn.commit();
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": true}');
+
+    } catch (e) {
+
+        await conn.rollback();
+        
+
+        await filesInfo.forEach( item => {
+            
+            const filePath = item.path;
+            
+            fs.access(filePath, fs.constants.F_OK, (err) => {
+                if (err) console.log('Cant delete files');
+            })
+
+            fs.unlink(filePath, (err) => err ?
+            console.log(err) : console.log(`${filePath} is deleted !`));
+            
+        });
+
+        console.log(e.message);
+
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+
+});
+
+router.put('/lock', async (req, res) => {
+
+    console.log("request Ip ( Put Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+    /*
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+    */
+    let conn;
+    console.log(req.body);
+    const {capsule_id, members, expire} = req.body;
+    let {text, title} = req.body;
 
     const status_temp = 0;
     
@@ -627,39 +1038,38 @@ router.put('/', async (req, res) => {
 
         conn = await pool.getConnection();
 
-        //console.log(req.files[0]);
-        //console.log(req.body.capsule_id);
-
-        if ( nick_name == undefined || title == undefined ) {
-            throw {name: 'undefinedBodyException', message: "Put Capsule - Capsule_info not exist"};
+        if ( capsule_id == undefined || title == undefined || expire == undefined || members == undefined) {
+            throw {name: 'undefinedBodyException', message: "Put LockedCapsule - Capsule_info not exist"};
         }
-
-        
-
         const updateQuery = `update capsule SET \
                                 title = '${title}', \
                                 status_temp = ${status_temp}, \
                                 text = ${textQuery}, \
                                 status_temp = 0 \
-                                where nick_name = '${nick_name}' AND \
-                                status_temp = 1`;
+                                where capsule_id = ${capsule_id} AND \
+                                status_temp = 1;`;
 
-        /*
-        const capsule = {
-            user_id,
-            title,
-            text,
-            status_temp
-        }
-        */
-
+        const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length});`;
         // DB Transaction Start
         await conn.beginTransaction();
-        const updResult = await conn.query(updateQuery);
+        const Result = await conn.query(updateQuery + lockedCapsuleQuery);
 
-        if (updResult[0].affectedRows == 0)
-            throw {name: 'putCapsuleNotUpdateException', message: "Put Capsule-Not-Update Error"};
+        if (Result[0].affectedRows == 0)
+            throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule-Not-Update Error"};
+        if (Result[1].affectedRows == 0)
+            throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule-Not-Insert Error"};
         
+        let sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values (?, ${capsule_id});`
+        let sharedCapsuleUserResult;
+        if (members.length > 0){
+            members.forEach(async (member) => {
+                sharedCapsuleUserResult = await conn.query(sharedCapsuleUserQuery, member);
+                console.log(sharedCapsuleUserResult);
+                if (sharedCapsuleUserResult[0].affectedRows == 0)
+                    throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule-SharedMember-Not-Insert Error"};
+            })
+            
+        }
         await conn.commit();
 
         res.writeHead(200, {'Content-Type':'application/json'});
