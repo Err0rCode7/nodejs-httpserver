@@ -139,7 +139,7 @@ create table `reply`(
 create table `tags`(
     tag_id int UNSIGNED NOT NULL AUTO_INCREMENT,
     name varchar(15) NOT NULL,
-    primary key(tag_id);
+    primary key(tag_id)
 );
 ```
 
@@ -158,6 +158,31 @@ create table `sessions`(
     session_id varchar(128) not null primary,
     expires unsigned int(11) not null,
     data mediumtext,
+);
+```
+
+```sql
+create table `lockedCapsule`(
+    id int UNSIGNED NOT NULL AUTO_INCREMENT,
+    capsule_id int UNSIGNED NOT NULL,
+    expire TIMESTAMP DEFAULT now() NOT NULL,
+    status_lock boolean DEFAULT true NOT NULL,
+    key_count int UNSIGNED DEFAULT 0 NOT NULL,
+    used_key_count int UNSIGNED DEFAULT 0 NOT NULL,
+    CONSTRAINT LOCKED_CAPSULE_ID_FK foreign key (capsule_id) references capsule (capsule_id) on delete cascade on update cascade,
+    primary key(id)
+);
+```
+
+```sql
+create table `sharedCapsuleUser`(
+    id int UNSIGNED NOT NULL AUTO_INCREMENT,
+    nick_name varchar(15) character set utf8 NOT NULL,
+    capsule_id int UNSIGNED NOT NULL,
+    CONSTRAINT SHARED_CAPSULE_USER_CAPSULE_ID_FK foreign key (capsule_id) references capsule (capsule_id) on delete cascade on update cascade,
+    CONSTRAINT SHARED_CAPSULE_USER_NICK_FK foreign key (nick_name) references user (nick_name) on delete cascade on update cascade,
+    unique key(nick_name, capsule_id),
+    primary key(id)
 );
 ```
 
