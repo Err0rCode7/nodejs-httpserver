@@ -29,6 +29,7 @@ const capsuleRouter = require('./routes/capsule.js');
 const followRouter = require('./routes/follow.js');
 const likeRouter = require('./routes/like.js');
 const commentRouter = require('./routes/comment.js');
+const sessionRouter = require('./routes/session.js');
 //const videoRouter = require('./routes/video.js');
 
 
@@ -59,6 +60,7 @@ app.use('/capsules', capsuleRouter);
 app.use('/follow', followRouter);
 app.use('/like', likeRouter);
 app.use('/comment', commentRouter);
+app.use('/session', sessionRouter);
 //app.use('/videos', videoRouter);
 
 
