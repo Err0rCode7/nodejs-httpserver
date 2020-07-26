@@ -241,11 +241,11 @@ router.get('/nick/:nickName', async (req, res)=>{
             let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened, status_temp, lat, lng, expire, status_lock, key_count, used_key_count} = rows[0];
 
             if (status_lock == null){
-                rows[0].status_lock = 0;
-                rows[0].key_count = 0;
-                rows[0].used_key_count = 0;
+                status_lock = 0;
+                key_count = 0;
+                used_key_count = 0;
             }
-                
+
             capsules.push({
                 capsule_id,
                 user_id,
@@ -268,7 +268,6 @@ router.get('/nick/:nickName', async (req, res)=>{
             });
 
             rows.forEach( item => {
-                
                 if (item.url != undefined && ip.address() != config.url().ip) {
                     if (ip.address() != config.url().ip) {
                         item.url = item.url.replace(config.url().ip, ip.address());
@@ -279,11 +278,9 @@ router.get('/nick/:nickName', async (req, res)=>{
                     item.status_lock = 0;
                     item.key_count = 0;
                     item.used_key_count = 0;
-
                 }
 
-
-                if (item != undefined) {
+                if (item != undefined && item.content_id != undefined) {
                     if (item.capsule_id == capsules[index].capsule_id) {
                         if (c_index == 0) {
                             if (item.content_id != null ){
@@ -300,7 +297,7 @@ router.get('/nick/:nickName', async (req, res)=>{
                                 content.push({
                                     content_id: item.content_id,
                                     url: item.url
-                                })
+                                });
                                 m_flag = 0;
                                 c_index++;
                             }
@@ -313,18 +310,18 @@ router.get('/nick/:nickName', async (req, res)=>{
                         if (rows.length - 1  == i) {
                             capsules[index].content = content;
                             capsules[index].members = members;
+                            c_index = 0;
                         }
 
                     } else if (item.capsule_id != capsules[index].capsule_id) {
                         capsules[index].content = content;
                         capsules[index].members = members;
+                        c_index = 0;
                         m_flag = 1;
-                        c_index, m_index = 0, 0;
-                        index = index + 1;
+                        index++;
                         content = [];
                         members = [];
                         
-
                         capsules[index] = {
                             capsule_id: item.capsule_id,
                             user_id: item.user_id,
@@ -346,9 +343,6 @@ router.get('/nick/:nickName', async (req, res)=>{
                             members:null
                         }
 
-                        if (status_lock == null)
-                            capsules[index].status_lock = 0;
-
                         if (item.content_id != null) {
                             content.push({
                                 content_id: item.content_id,
@@ -363,6 +357,7 @@ router.get('/nick/:nickName', async (req, res)=>{
                         if (rows.length - 1  == i) {
                             capsules[index].content = content;
                             capsules[index].members = members;
+                            c_index = 0;
                         }
                     }
                 }
@@ -456,9 +451,9 @@ router.get('/:capsuleId', async (req, res) => {
             let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened, status_temp, lat, lng, expire, status_lock, key_count, used_key_count} = rows[0];
 
             if (status_lock == null){
-                rows[0].status_lock = 0;
-                rows[0].key_count = 0;
-                rows[0].used_key_count = 0;
+                status_lock = 0;
+                key_count = 0;
+                used_key_count = 0;
             }
                 
             capsules.push({
@@ -489,16 +484,13 @@ router.get('/:capsuleId', async (req, res) => {
                         item.url = item.url.replace(config.url().ip, ip.address());
                     }
                 }
-
                 if (item.status_lock == null) {
                     item.status_lock = 0;
                     item.key_count = 0;
                     item.used_key_count = 0;
                 }
-
                 if (item != undefined) {
                     if (item.capsule_id == capsules[index].capsule_id) {
-                        
                         if (c_index == 0) {
                             if (item.content_id != null ){
                                 content.push({
@@ -506,7 +498,6 @@ router.get('/:capsuleId', async (req, res) => {
                                     url: item.url
                                 });
                                 c_index++;
-                                
                             }
                         }
 
@@ -528,13 +519,14 @@ router.get('/:capsuleId', async (req, res) => {
                         if (rows.length - 1  == i) {
                             capsules[index].content = content;
                             capsules[index].members = members;
+                            c_index = 0;
                         }
 
                     } else if (item.capsule_id != capsules[index].capsule_id) {
                         capsules[index].content = content;
                         capsules[index].members = members;
                         m_flag = 1;
-                        c_index, m_index = 0, 0;
+                        c_index = 0;
                         index = index + 1;
                         content = [];
                         members = [];
@@ -560,9 +552,6 @@ router.get('/:capsuleId', async (req, res) => {
                             members:null
                         }
 
-                        if (status_lock == null)
-                            capsules[index].status_lock = 0;
-
                         if (item.content_id != null) {
                             content.push({
                                 content_id: item.content_id,
@@ -577,6 +566,7 @@ router.get('/:capsuleId', async (req, res) => {
                         if (rows.length - 1  == i) {
                             capsules[index].content = content;
                             capsules[index].members = members;
+                            c_index = 0;
                         }
                     }
                 }
