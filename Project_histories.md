@@ -593,7 +593,7 @@ http://address:port/comment/reply/"Input the Comment ID"
 ```
 
 ## Completed - 5
-(2020/07/11 ~ 2020/7/)
+(2020/07/11 ~ 2020/7/26)
 
 ### Comment list
 - Update Get-Comment-list Router(Add user_image_url) and Post-Comment,Reply (delete user_id)
