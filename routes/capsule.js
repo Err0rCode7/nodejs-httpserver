@@ -95,7 +95,6 @@ router.get('/', async (req, res) => {
 
         const result = await conn.query(query); 
         let rows = result[0];
-
         //rows.unshift({"success":true});
         /*
         rows.forEach( row =>{
@@ -137,10 +136,13 @@ router.get('/location', async (req, res) => {
                             expire, \
                             status_lock, \
                             key_count, \
-                            used_key_count \
+                            used_key_count, \
+                            scu.nick_name as member
                         from capsule \
                         LEFT JOIN lockedCapsule lc \
                         ON capsule.capsule_id = lc.capsule_id \
+                        LEFT JOIN sharedCapsuleUser as scu \
+                        ON capsule.capsule_id = scu.capsule_id \
                         where U_ST_DISTANCE_SPHERE(POINT(${lng}, ${lat}), location) <= 0.01 \
                         order by Dist;`
     
@@ -154,15 +156,82 @@ router.get('/location', async (req, res) => {
 
         const result = await conn.query(query);
         let rows = result[0];
+        let capsules = [];
+        let members = [];
+        let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
+            status_temp, location, dist, expire, status_lock, key_count, used_key_count} = rows[0];
+        if (status_lock == null){
+            status_lock = 0;
+            key_count = 0;
+            used_key_count = 0;
+        }
+        capsules.push({
+            capsule_id,
+            user_id,
+            nick_name,
+            title,
+            text,
+            likes,
+            views,
+            date_created,
+            date_opened,
+            status_temp,
+            location,
+            dist,
+            expire, 
+            status_lock, 
+            key_count, 
+            used_key_count,
+            members:null
+        });
+        let index = 0;
         rows.forEach( (row)=>{
+            //console.log(row)
             if (row.status_lock == null){
                 row.status_lock = 0;
                 row.key_count = 0;
                 row.used_key_count = 0;
             }
+
+            if (capsules[capsules.length - 1].capsule_id == row.capsule_id){
+                if (row.member != null)
+                    members.push(row.member);
+                if (index + 1 == rows.length)
+                    capsules[capsules.length - 1].members = members
+            } else {
+                console.log(capsules[capsules.length - 1].capsule_id, row.capsule_id)
+                capsules[capsules.length - 1].members = members
+                members = [];
+                let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
+                    status_temp, location, dist, expire, status_lock, key_count, used_key_count} = row;
+                capsules.push({
+                    capsule_id,
+                    user_id,
+                    nick_name,
+                    title,
+                    text,
+                    likes,
+                    views,
+                    date_created,
+                    date_opened,
+                    status_temp,
+                    location,
+                    dist,
+                    expire, 
+                    status_lock, 
+                    key_count, 
+                    used_key_count,
+                    members:null
+                });
+                if (row.member != null)
+                    members.push(row.member);
+                if (index + 1 == rows.length)
+                    capsules[capsules.length - 1].members = members
+            }
+            index++;
         });
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(rows));
+        res.end(JSON.stringify(capsules));
         
     } catch (e) {
         console.log(e)
@@ -186,7 +255,7 @@ router.get('/nick/:nickName', async (req, res)=>{
         return;
     }*/
     
-    const nick_name = req.params.nickName;
+    const nickName = req.params.nickName;
     let conn;
     const query = `select cap.capsule_id, \
                             user_id, \
@@ -213,7 +282,6 @@ router.get('/nick/:nickName', async (req, res)=>{
                         ON cap.capsule_id = lc.capsule_id \
                         LEFT JOIN sharedCapsuleUser as scu \
                         ON cap.capsule_id = scu.capsule_id \
-                        where cap.nick_name = '${nick_name}' \
                         group by cap.capsule_id, ct.content_id, scu.id \
                         ORDER BY capsule_id DESC;`;
     try {
@@ -223,7 +291,6 @@ router.get('/nick/:nickName', async (req, res)=>{
         const result = await conn.query(query);
 
         let rows = result[0];
-        
         if (rows.length == 0) {
 
             res.writeHead(200, {'Content-Type':'application/json'});
@@ -280,7 +347,7 @@ router.get('/nick/:nickName', async (req, res)=>{
                     item.used_key_count = 0;
                 }
 
-                if (item != undefined && item.content_id != undefined) {
+                if (item != undefined) {
                     if (item.capsule_id == capsules[index].capsule_id) {
                         if (c_index == 0) {
                             if (item.content_id != null ){
@@ -363,7 +430,12 @@ router.get('/nick/:nickName', async (req, res)=>{
                 }
                 i = i + 1;
             });
-                    //capsules.unshift({"success":true});
+            let j;
+            for (j = capsules.length - 1; j >= 0; j-- ) {
+                if (capsules[j].nick_name != nickName && !capsules[j].members.includes(nickName)){
+                    capsules.splice(j, 1);
+                }
+            }
             res.writeHead(200, {'Content-Type':'application/json'});
             res.end(JSON.stringify(capsules));
         }
@@ -591,6 +663,233 @@ router.get('/:capsuleId', async (req, res) => {
     }
 });
 
+router.get('/f4f/:nickName', async (req, res)=>{
+    
+    console.log("request Ip ( Get Capsules with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+    /*
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }*/
+    
+    const nick_name = req.params.nickName;
+    let conn;
+
+    const f4fListQuery = `select \
+                            nick_name, \
+                            dest_nick_name \
+                        from follow;`;
+
+    const query = `select cap.capsule_id, \
+                            user_id, \
+                            cap.nick_name, \
+                            title, \
+                            text, \
+                            likes, \
+                            views, \
+                            date_created, \
+                            date_opened, \
+                            status_temp, \
+                            y(location) as lat, x(location) as lng, \
+                            content_id, \
+                            url, \
+                            lc.expire, \
+                            lc.status_lock, \
+                            lc.key_count, \
+                            lc.used_key_count,
+                            scu.nick_name as member \
+                        from capsule as cap \
+                        LEFT JOIN content as ct \
+                        ON cap.capsule_id = ct.capsule_id \
+                        LEFT JOIN lockedCapsule as lc \
+                        ON cap.capsule_id = lc.capsule_id \
+                        LEFT JOIN sharedCapsuleUser as scu \
+                        ON cap.capsule_id = scu.capsule_id \
+                        group by cap.capsule_id, ct.content_id, scu.id \
+                        ORDER BY capsule_id DESC;`;
+    try {
+
+        conn = await pool.getConnection();
+
+        const resultF4fListQuery = await conn.query(f4fListQuery);
+        const rowF4FListQuery = resultF4fListQuery[0];
+        
+        let followList = [];
+        let followerList = [];
+        rowF4FListQuery.forEach(row => {
+            if (row.nick_name == nick_name && !(followList.includes(row.dest_nick_name)))
+                followList.push(row.dest_nick_name);
+            if (row.nick_name != nick_name && !(followerList.includes(row.nick_name))){
+                followerList.push(row.nick_name);
+            }
+        });
+        let f4f = [];
+        followerList.forEach( followerRow =>{
+            if (followList.includes(followerRow))
+                f4f.push(followerRow);
+        })
+
+        const result = await conn.query(query);
+
+        let rows = result[0];
+        if (rows.length == 0) {
+
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify([]));
+
+        } else {
+
+            let index = 0;
+            let i = 0;          // capsule_count
+            let c_index = 0;    // content_count
+            let m_flag = 1;
+            let content = [];
+            let members = [];
+            let capsules = [];
+            
+            rows.forEach( item => {
+
+                if (f4f.includes(item.nick_name)){
+                    
+                    if (item.url != undefined && ip.address() != config.url().ip) {
+                        if (ip.address() != config.url().ip) {
+                            item.url = item.url.replace(config.url().ip, ip.address());
+                        }
+                    }
+    
+                    if (item.status_lock == null) {
+                        item.status_lock = 0;
+                        item.key_count = 0;
+                        item.used_key_count = 0;
+                    }
+
+                    if (item != undefined) {
+                        
+                        if (capsules.length > 0 && item.capsule_id == capsules[index].capsule_id) {
+                            if (c_index == 0) {
+                                if (item.content_id != null ){
+                                    content.push({
+                                        content_id: item.content_id,
+                                        url: item.url
+                                    });
+                                    c_index++;
+                                }
+                            }
+    
+                            if (c_index > 0) {
+                                if (content[c_index - 1].content_id != item.content_id && item.content_id != null) {
+                                    content.push({
+                                        content_id: item.content_id,
+                                        url: item.url
+                                    });
+                                    m_flag = 0;
+                                    c_index++;
+                                }
+                            }
+    
+                            if (m_flag == 1 && item.member != null) {
+                                members.push(item.member);
+                            }
+    
+                            if (rows.length - 1  == i) {
+                                capsules[index].content = content;
+                                capsules[index].members = members;
+                                c_index = 0;
+                            }
+    
+                        } else if (capsules.length == 0 || item.capsule_id != capsules[index].capsule_id) {
+                            if (capsules.length > 0){
+                                capsules[index].content = content;
+                                capsules[index].members = members;
+                                c_index = 0;
+                                m_flag = 1;
+                                index++;
+                                content = [];
+                                members = [];
+                                capsules[index] = {
+                                    capsule_id: item.capsule_id,
+                                    user_id: item.user_id,
+                                    nick_name: item.nick_name,
+                                    title: item.title,
+                                    text: item.text,
+                                    likes: item.likes,
+                                    views: item.views,
+                                    date_created: item.date_created,
+                                    date_opened: item.date_opened,
+                                    status_temp: item.status_temp,
+                                    lat: item.lat,
+                                    lng: item.lng,
+                                    expire: item.expire, 
+                                    status_lock: item.status_lock, 
+                                    key_count: item.key_count, 
+                                    used_key_count: item.used_key_count,
+                                    content:null,
+                                    members:null
+                                }
+        
+                                if (item.content_id != null) {
+                                    content.push({
+                                        content_id: item.content_id,
+                                        url: item.url
+                                    })
+                                    c_index++;
+                                }
+                                if (item.member != null) {
+                                    members.push(item.member);
+                                }
+            
+                                if (rows.length - 1  == i) {
+                                    capsules[index].content = content;
+                                    capsules[index].members = members;
+                                    c_index = 0;
+                                }
+                            } else if (capsules.length == 0) {
+                                console.log(i, item.capsule_id);
+                                let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
+                                    status_temp, lat, lng, expire, status_lock, key_count, used_key_count} = item;
+                                capsules.push({
+                                    capsule_id,
+                                    user_id,
+                                    nick_name,
+                                    title,
+                                    text,
+                                    likes,
+                                    views,
+                                    date_created,
+                                    date_opened,
+                                    status_temp,
+                                    lat,
+                                    lng,
+                                    expire, 
+                                    status_lock, 
+                                    key_count, 
+                                    used_key_count,
+                                    content:[],
+                                    members:[]
+                                });
+                            }
+                        }
+                    }
+                }
+                i = i + 1;
+            });
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify(capsules));
+        }
+
+    } catch (e) {
+        console.log(e);
+
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+        //res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+});
 // Capsule 임시저장
 router.post('/', async (req,res) => {
 
@@ -1031,6 +1330,8 @@ router.put('/lock', async (req, res) => {
         if ( capsule_id == undefined || title == undefined || expire == undefined || members == undefined) {
             throw {name: 'undefinedBodyException', message: "Put LockedCapsule - Capsule_info not exist"};
         }
+
+
         const updateQuery = `update capsule SET \
                                 title = '${title}', \
                                 status_temp = ${status_temp}, \
