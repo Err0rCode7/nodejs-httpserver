@@ -81,6 +81,8 @@ create table `content`(
 
 ```
 
+- follow
+
 ```sql
 create table `follow`(
     id int UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -92,6 +94,8 @@ create table `follow`(
     CONSTRAINT FOLLOW_DEST_NICK_FK foreign key (dest_nick_name) references user (nick_name) on delete cascade on update cascade
 );
 ```
+
+- like
 
 ```sql
 create table `likeCapsule`(
@@ -105,6 +109,7 @@ create table `likeCapsule`(
 );
 ```
 
+- comment 
 ```sql
 create table `comment`(
     id int UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -119,6 +124,7 @@ create table `comment`(
 );
 ```
 
+- reply
 ```sql
 create table `reply`(
     id int UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -135,6 +141,7 @@ create table `reply`(
 );
 ```
 
+- tags
 ```sql
 create table `tags`(
     tag_id int UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -143,6 +150,7 @@ create table `tags`(
 );
 ```
 
+- tagMap
 ```sql
 create table `tagMap`(
     capsule_id int UNSIGNED NOT NULL,
@@ -153,6 +161,7 @@ create table `tagMap`(
 );
 ```
 
+- session
 ```sql
 create table `sessions`(
     session_id varchar(128) not null primary,
@@ -161,6 +170,7 @@ create table `sessions`(
 );
 ```
 
+- lockedCapsule
 ```sql
 create table `lockedCapsule`(
     id int UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -170,10 +180,12 @@ create table `lockedCapsule`(
     key_count int UNSIGNED DEFAULT 0 NOT NULL,
     used_key_count int UNSIGNED DEFAULT 0 NOT NULL,
     CONSTRAINT LOCKED_CAPSULE_ID_FK foreign key (capsule_id) references capsule (capsule_id) on delete cascade on update cascade,
+    unique key(capsule_id),
     primary key(id)
 );
 ```
 
+- sharedCapsueUser
 ```sql
 create table `sharedCapsuleUser`(
     id int UNSIGNED NOT NULL AUTO_INCREMENT,
