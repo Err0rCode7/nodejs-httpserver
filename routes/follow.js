@@ -149,16 +149,112 @@ router.get('/followerlist/:nickName', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
+router.get('/forfollow/list/:nickName', async (req, res) => {
 
-    console.log("request Ip ( Post Follow ) :",req.connection.remoteAddress.replace('::ffff:', ''));
-
+    console.log("request Ip ( Get Follow For Follow List ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const nickName = req.params.nickName;
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
     }
+    */
+    const f4fListQuery = `select \
+                                user.nick_name as nick_name, \
+                                fl.dest_nick_name as dest_nick_name, \
+                                user.first_name as first_name, \
+                                user.last_name as last_name, \
+                                user.date_created as date_created, \
+                                user.date_updated as date_updated, \
+                                user.follow as follow, \
+                                user.follower as follower, \
+                                user.image_url as image_url, \
+                                user.image_name as image_name \
+                            from follow as fl \
+                            INNER JOIN user \
+                            ON (fl.nick_name = user.nick_name) \
+                            ORDER BY fl.id;`
+
+
+    let conn;
+
+    try {
+
+        if (nickName == undefined) {
+            throw "Follow Exception : Undefined Request Params";
+        }
+
+        conn = await pool.getConnection();
+        await conn.beginTransaction();
+
+        const resultF4fListQuery = await conn.query(f4fListQuery);
+        const rowF4FListQuery = resultF4fListQuery[0];
+
+        if (ip.address() != config.url().ip) {
+            rowF4FListQuery.forEach(row => {
+                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+            });
+        }
+        
+        let followList = [];
+        let followerList = [];
+        rowF4FListQuery.forEach(row => {
+            if (row.nick_name == nickName && !(followList.includes(row.dest_nick_name)))
+                followList.push(row.dest_nick_name);
+            if (row.nick_name != nickName && !(followerList.includes(row.nick_name))){
+                let {nick_name, first_name, last_name, date_created, date_updated, follow, follower, image_url, image_name} = row;
+                followerList.push({
+                    nick_name,
+                    first_name,
+                    last_name,
+                    date_created,
+                    date_updated,
+                    follow,
+                    follower,
+                    image_url,
+                    image_name
+                });
+            }
+        });
+        let f4f = []
+        followerList.forEach( followerRow =>{
+            if (followList.includes(followerRow.nick_name))
+                f4f.push(followerRow);
+        });
+
+        await conn.commit();
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify(f4f));
+
+    } catch (e) {
+
+        console.log(e);
+
+        await conn.rollback();
+        
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+        
+
+    } finally {
+        conn.release();
+    }
+})
+
+router.post('/', async (req, res) => {
+
+    console.log("request Ip ( Post Follow ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    /*
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+    */
 
     const {nick_name, dest_nick_name} = req.body;
 
@@ -224,14 +320,14 @@ router.post('/', async (req, res) => {
 router.delete('', async (req, res) => {
 
     console.log("request Ip ( Delete follow ) :",req.connection.remoteAddress.replace('::ffff:', ''));
-
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
     }
-
+    */
     const {nick_name, dest_nick_name} = req.query;
 
     const followedQuery = `update user set follower = follower - 1 where nick_name = "${dest_nick_name}";`;
