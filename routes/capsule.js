@@ -454,11 +454,12 @@ router.get('/nick/:nickName', async (req, res)=>{
 router.post('/id', async (req, res) => { 
 
     
-    console.log("request Ip ( Get a Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get(Post) a Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const {nick_name, capsule_id} = req.body;
-    
+    const {capsule_id, nick_name} = req.body;
+    const isLockedQuery = `select capsule_id from lockedCapsule where capsule_id = ${capsule_id};`;
+    const viewsUpQuery = `update capsule set views = views + 1 where capsule_id = ${capsule_id};`;
     const query = `select cap.capsule_id, \
                             user_id, \
                             cap.nick_name, \
@@ -497,12 +498,23 @@ router.post('/id', async (req, res) => {
 
         conn = await pool.getConnection();
 
-        if (capsule_id == undefined)
+        if (capsule_id == undefined || nick_name == undefined)
             throw "Get-URL-Capsule Exception - need capsuleId"
 
-        
-        let result = await conn.query(query);
+        let result = await conn.query(isLockedQuery);
         let rows = result[0];
+
+        if (rows.length != 0){
+            result = await conn.query(viewsUpQuery);
+            rows = result[0];
+            
+            if (rows.affectedRows == 0){
+                throw "Exception : Cant Find Capsule with capsule_id";
+            }
+        }
+
+        result = await conn.query(query);
+        rows = result[0];
         let capsules = [];
         if (rows.length == 0)
             throw "Exception : Cant Find Capsule with capsule_id";
@@ -536,7 +548,7 @@ router.post('/id', async (req, res) => {
             if (like_flag == null){
                 like_flag = 0;
             }
-                
+
             capsules.push({
                 capsule_id,
                 user_id,
