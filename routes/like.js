@@ -9,13 +9,13 @@ const pool = mysql.createPool(config.db());
 router.post('/', async (req, res) => {
 
     console.log("request Ip ( Post likeCapsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
-
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
-    }
+    }*/
 
     const {capsule_id, nick_name} = req.body;
 
@@ -71,13 +71,13 @@ router.delete('', async (req, res) => {
 
     console.log("request Ip ( Delete Like ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const {capsule_id, nick_name} = req.query;
-
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
-    }
+    }*/
 
     const likeQuery = `update capsule set likes = likes - 1 where capsule_id = ${capsule_id};`;
     const likeDeleteQuery = `delete from likeCapsule where nick_name = '${nick_name}' and capsule_id = ${capsule_id};`;
