@@ -532,18 +532,21 @@ http://address:port/capsules/nick/"Input the nick"
 ]
 ```
 
-### Get Capsules With Capsule_id
+### Post Capsules With Capsule_id, Nick_name
     
-- Get/ `./capsules/:capsule_id`
-    - Response a capsule has this capsule_id
-
+- Post/ `./capsules/id`
+    - Response a capsule has this capsule_id including whether a user has Nick_name likes this capsule
+    -
 - Success Response : Header with Code 200
 - Fail Response : Header with Code 404
 
 #### Request Form Sample
     
-```
-http://address:port/capsules/nick/"Input the capsule_id"
+```json
+{
+    capsule_id: __,
+    nick_name: "__"
+}
 ```
 
 #### Response Form Sample
@@ -565,6 +568,7 @@ http://address:port/capsules/nick/"Input the capsule_id"
     status_lock: 1,
     key_count: 3,
     used_key_count: 0,
+    like_flag: 1,
     content: [ ],
     members: [
         "nick16",
