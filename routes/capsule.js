@@ -451,13 +451,13 @@ router.get('/nick/:nickName', async (req, res)=>{
     }
 });
 
-router.get('/:capsuleId', async (req, res) => { 
+router.post('/id', async (req, res) => { 
 
     
     console.log("request Ip ( Get a Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
-    const capsule_id = req.params.capsuleId;
+    const {nick_name, capsule_id} = req.body;
     
     const query = `select cap.capsule_id, \
                             user_id, \
@@ -476,7 +476,8 @@ router.get('/:capsuleId', async (req, res) => {
                             lc.status_lock, \
                             lc.key_count, \
                             lc.used_key_count,
-                            scu.nick_name as member \
+                            scu.nick_name as member, \
+                            count(li.nick_name) as like_flag
                         from capsule as cap \
                         LEFT JOIN content as ct \
                         ON cap.capsule_id = ct.capsule_id \
@@ -484,6 +485,9 @@ router.get('/:capsuleId', async (req, res) => {
                         ON cap.capsule_id = lc.capsule_id \
                         LEFT JOIN sharedCapsuleUser as scu \
                         ON cap.capsule_id = scu.capsule_id \
+                        LEFT JOIN likeCapsule as li \
+                        ON (cap.capsule_id = li.capsule_id and \
+                            li.nick_name = '${nick_name}') \
                         where cap.capsule_id = ${capsule_id} \
                         group by cap.capsule_id, ct.content_id, scu.id \
                         ORDER BY capsule_id DESC;`;
@@ -520,12 +524,17 @@ router.get('/:capsuleId', async (req, res) => {
             let content = [];
             let members = [];
 
-            let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened, status_temp, lat, lng, expire, status_lock, key_count, used_key_count} = rows[0];
+            let { capsule_id, user_id, nick_name, title, text, likes, views,
+                date_created, date_opened, status_temp, lat, lng, expire, status_lock, key_count, used_key_count, like_flag} = rows[0];
 
             if (status_lock == null){
                 status_lock = 0;
                 key_count = 0;
                 used_key_count = 0;
+            }
+
+            if (like_flag == null){
+                like_flag = 0;
             }
                 
             capsules.push({
@@ -545,6 +554,7 @@ router.get('/:capsuleId', async (req, res) => {
                 status_lock, 
                 key_count, 
                 used_key_count,
+                like_flag,
                 content:null,
                 members:null
             });
@@ -560,6 +570,9 @@ router.get('/:capsuleId', async (req, res) => {
                     item.status_lock = 0;
                     item.key_count = 0;
                     item.used_key_count = 0;
+                }
+                if (item.like_flag == null){
+                    item.like_flag = 0;
                 }
                 if (item != undefined) {
                     if (item.capsule_id == capsules[index].capsule_id) {
@@ -620,6 +633,7 @@ router.get('/:capsuleId', async (req, res) => {
                             status_lock: item.status_lock, 
                             key_count: item.key_count, 
                             used_key_count: item.used_key_count,
+                            like_flag: item.like_flag,
                             content:null,
                             members:null
                         }
@@ -1162,7 +1176,7 @@ router.put('/', async (req, res) => {
 router.put('/lock/images', upload.array("file"), async (req, res) => {
 
 
-    console.log("request Ip ( Put Capsule with images ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Put LockedCapsule with images ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     if(req.session.nick_name == undefined){
@@ -1296,7 +1310,7 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
 
 router.put('/lock', async (req, res) => {
 
-    console.log("request Ip ( Put Capsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Put LockedCapsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
     /*
     if(req.session.nick_name == undefined){
