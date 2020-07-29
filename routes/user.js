@@ -485,8 +485,6 @@ router.post('/logout', async (req, res) =>{
         res.writeHead(404, {'Content-Type':'application/json'});
         res.end();
     //res.end('{"success": false}'); 
-    } finally {
-        conn.release();
     }
 
 });
