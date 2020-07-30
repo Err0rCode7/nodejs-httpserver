@@ -473,8 +473,9 @@ router.post('/logout', async (req, res) =>{
         throw "Exception : sessions is undefined";
     }
 
-    await req.session.destroy(err=>{
-        throw "Exception : Failed Session Destruction";
+    req.session.destroy(err =>{
+        if (err)
+            throw "Exception : Failed Session Destruction";
     })
 
     res.writeHead(200, {'Content-Type':'application/json'});
@@ -576,7 +577,6 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
     where nick_name = "${pre_nick_name}";`;
 
     const selectQuery = `select image_url, image_name from user where nick_name = '${pre_nick_name}';`;
-
     try {
 
         conn = await pool.getConnection();
@@ -609,22 +609,24 @@ router.put('/image', upload.single("file") ,async (req, res) =>{
         if (preFileName != undefined && preFileName != null) {
             const preFilePath = `public/images/${preFileName}`;
             fs.access(preFilePath, fs.constants.F_OK, (err) =>{
-                if (err) throw {name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"};
+                if (err) console.log({name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"});
             });
 
             fs.unlink(preFilePath, (err) => {
                 if (err)
-                    throw {name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"}
+                    console.log({name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"});
                 else
                     console.log(`${preFilePath} is deleted !`);
             });
         } 
 
+        
         req.session.nick_name = new_nick_name;
         await req.session.save(()=>{
             res.writeHead(200, {'Content-Type':'application/json'});
             res.end('{"success": true}'); 
         });
+        await conn.commit();
 
     } catch (error) {
         console.log(error);
