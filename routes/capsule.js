@@ -1203,6 +1203,7 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
     console.log("request Ip ( Put LockedCapsule with images ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
+    
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
@@ -1214,8 +1215,10 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
     
     const filesInfo = req.files
     const capsule_id = req.body.capsule_id;
+    const expire = req.body.expire;
+    let members = req.body.members;
     let {title, text} = req.body;
-    
+
     // mysql ' " exception control
     title = title.replace("'","\\'").replace('"','\\"');
 
@@ -1247,7 +1250,6 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
                                 status_temp = 1;`;
 
         const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length});`;
-
        await filesInfo.forEach( item =>{
 
         const content_name = item.filename;
@@ -1288,13 +1290,12 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
                 throw {name: 'putCapsuleNotInsertException', message: "Put Put LockedCapsule(Content)-Not-Insert Error"};
         })
 
-        let sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values (?, ${capsule_id});`
         let sharedCapsuleUserResult;
 
         if (members.length > 0){
             members.forEach(async (member) => {
-                sharedCapsuleUserResult = await conn.query(sharedCapsuleUserQuery, member);
-                console.log(sharedCapsuleUserResult);
+                let sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values (${member}, ${capsule_id});`
+                let sharedCapsuleUserResult = await conn.query(sharedCapsuleUserQuery);
                 if (sharedCapsuleUserResult[0].affectedRows == 0)
                     throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule-SharedMember-Not-Insert Error"};
             })
