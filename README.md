@@ -1196,7 +1196,7 @@ http://address:port/comment/list/"Input the Capsule Id"
 {
     "capsule_id" : __,
     "nick_name" : "__",
-    "conmment": ""
+    "comment": ""
 }
 ```
 - case 2 (Child Comment : reply)
@@ -1204,7 +1204,7 @@ http://address:port/comment/list/"Input the Capsule Id"
 {
     "capsule_id" : __,
     "nick_name" : "__",
-    "conmment": "",
+    "comment": "",
     "parent_id": __
 }
 ```
