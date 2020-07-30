@@ -74,7 +74,7 @@ router.get('/', async (req, res) => {
         return;
     }*/
 
-    const query = "select capsule_id, \
+    const query = "select capsule.capsule_id, \
                             user_id, \
                             nick_name, \
                             title, \
@@ -84,8 +84,11 @@ router.get('/', async (req, res) => {
                             date_created, \
                             date_opened, \
                             status_temp,\
-                            y(location) as lat, x(location) as lng \
-                            from capsule";
+                            y(location) as lat, x(location) as lng, \
+                            status_lock \
+                            from capsule \
+                            LEFT JOIN lockedCapsule as lc \
+                            ON capsule.capsule_id = lc.capsule_id;";
 
     let conn;
 
@@ -95,6 +98,10 @@ router.get('/', async (req, res) => {
 
         const result = await conn.query(query); 
         let rows = result[0];
+        rows.forEach(item => {
+            if (item.status_lock == null)
+                item.status_lock = 0;
+        })
         //rows.unshift({"success":true});
         /*
         rows.forEach( row =>{
@@ -156,83 +163,88 @@ router.get('/location', async (req, res) => {
 
         const result = await conn.query(query);
         let rows = result[0];
-        let capsules = [];
-        let members = [];
-        let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
-            status_temp, location, dist, expire, status_lock, key_count, used_key_count} = rows[0];
-        if (status_lock == null){
-            status_lock = 0;
-            key_count = 0;
-            used_key_count = 0;
-        }
-        capsules.push({
-            capsule_id,
-            user_id,
-            nick_name,
-            title,
-            text,
-            likes,
-            views,
-            date_created,
-            date_opened,
-            status_temp,
-            location,
-            dist,
-            expire, 
-            status_lock, 
-            key_count, 
-            used_key_count,
-            members:null
-        });
-        let index = 0;
-        rows.forEach( (row)=>{
-            //console.log(row)
-            if (row.status_lock == null){
-                row.status_lock = 0;
-                row.key_count = 0;
-                row.used_key_count = 0;
-            }
 
-            if (capsules[capsules.length - 1].capsule_id == row.capsule_id){
-                if (row.member != null)
-                    members.push(row.member);
-                if (index + 1 == rows.length)
-                    capsules[capsules.length - 1].members = members
-            } else {
-                console.log(capsules[capsules.length - 1].capsule_id, row.capsule_id)
-                capsules[capsules.length - 1].members = members
-                members = [];
-                let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
-                    status_temp, location, dist, expire, status_lock, key_count, used_key_count} = row;
-                capsules.push({
-                    capsule_id,
-                    user_id,
-                    nick_name,
-                    title,
-                    text,
-                    likes,
-                    views,
-                    date_created,
-                    date_opened,
-                    status_temp,
-                    location,
-                    dist,
-                    expire, 
-                    status_lock, 
-                    key_count, 
-                    used_key_count,
-                    members:null
-                });
-                if (row.member != null)
-                    members.push(row.member);
-                if (index + 1 == rows.length)
-                    capsules[capsules.length - 1].members = members
+        if (rows.length == 0) {
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify([]));
+        } else {
+            let capsules = [];
+            let members = [];
+            let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
+                status_temp, location, dist, expire, status_lock, key_count, used_key_count} = rows[0];
+            if (status_lock == null){
+                status_lock = 0;
+                key_count = 0;
+                used_key_count = 0;
             }
-            index++;
-        });
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(capsules));
-        
+            capsules.push({
+                capsule_id,
+                user_id,
+                nick_name,
+                title,
+                text,
+                likes,
+                views,
+                date_created,
+                date_opened,
+                status_temp,
+                location,
+                dist,
+                expire, 
+                status_lock, 
+                key_count, 
+                used_key_count,
+                members:null
+            });
+            let index = 0;
+            rows.forEach( (row)=>{
+                //console.log(row)
+                if (row.status_lock == null){
+                    row.status_lock = 0;
+                    row.key_count = 0;
+                    row.used_key_count = 0;
+                }
+    
+                if (capsules[capsules.length - 1].capsule_id == row.capsule_id){
+                    if (row.member != null)
+                        members.push(row.member);
+                    if (index + 1 == rows.length)
+                        capsules[capsules.length - 1].members = members
+                } else {
+                    console.log(capsules[capsules.length - 1].capsule_id, row.capsule_id)
+                    capsules[capsules.length - 1].members = members
+                    members = [];
+                    let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
+                        status_temp, location, dist, expire, status_lock, key_count, used_key_count} = row;
+                    capsules.push({
+                        capsule_id,
+                        user_id,
+                        nick_name,
+                        title,
+                        text,
+                        likes,
+                        views,
+                        date_created,
+                        date_opened,
+                        status_temp,
+                        location,
+                        dist,
+                        expire, 
+                        status_lock, 
+                        key_count, 
+                        used_key_count,
+                        members:null
+                    });
+                    if (row.member != null)
+                        members.push(row.member);
+                    if (index + 1 == rows.length)
+                        capsules[capsules.length - 1].members = members
+                }
+                index++;
+            });
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify(capsules));
+        }
     } catch (e) {
         console.log(e)
         res.writeHead(404, {'Content-Type':'application/json'});
@@ -454,7 +466,7 @@ router.get('/nick/:nickName', async (req, res)=>{
 router.post('/id', async (req, res) => { 
 
     
-    console.log("request Ip ( Get(Post) a Capsule with capsule_id ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    console.log("request Ip ( Get(Post) a Capsule with capsule_id, nick_name ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
 
     const {capsule_id, nick_name} = req.body;
@@ -504,7 +516,7 @@ router.post('/id', async (req, res) => {
         let result = await conn.query(isLockedQuery);
         let rows = result[0];
 
-        if (rows.length != 0){
+        if (rows.length == 0){
             result = await conn.query(viewsUpQuery);
             rows = result[0];
             
