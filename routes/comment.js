@@ -24,6 +24,7 @@ router.get('/list/:capsuleId', async (req, res) => {
 
     const capsule_id = req.params.capsuleId;
     const selectCommentListQuery = `select c.id as comment_id, \
+                                    r.id as reply_id, \
                                     c.nick_name as parent_nick_name, \
                                     r.nick_name as child_nick_name, \
                                     c.comment as parent_comment, \
@@ -66,6 +67,7 @@ router.get('/list/:capsuleId', async (req, res) => {
 
         let childList = [];
         let commentList = [];
+        let temp_comment_id;
         let temp_parent_nick;
         let temp_parent_comment;
         let temp_parent_date_created;
@@ -87,6 +89,7 @@ router.get('/list/:capsuleId', async (req, res) => {
             }
 
             const { comment_id,
+                reply_id,
                 parent_nick_name, 
                 child_nick_name, 
                 parent_comment, 
@@ -120,6 +123,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                     temp_parent_date_updated = parent_date_updated;
                     temp_parent_image_url = parent_image_url;
                     childList.push({
+                        reply_id: reply_id,
                         nick_name: child_nick_name,
                         comment: child_comment,
                         date_created: child_date_created,
@@ -159,6 +163,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                     temp_parent_date_updated = parent_date_updated;
                     temp_parent_image_url = parent_image_url;
                     childList.push({
+                        reply_id: reply_id,
                         nick_name: child_nick_name,
                         comment: child_comment,
                         date_created: child_date_created,
