@@ -1103,6 +1103,7 @@ http://address:port/comment/list/"Input the Capsule Id"
 ```json
 [
     {
+        comment_id: 2,
         nick_name: "nick11",
         comment: "Test1",
         date_created: "2020-07-15T11:49:04.000Z",
@@ -1154,6 +1155,7 @@ http://address:port/comment/list/"Input the Capsule Id"
         ]
     },
     {
+        comment_id: 3,
         nick_name: "nick11",
         comment: "Test2",
         date_created: "2020-07-15T11:49:06.000Z",
@@ -1162,6 +1164,7 @@ http://address:port/comment/list/"Input the Capsule Id"
         replies: [ ]
     },
     {
+        comment_id: 4,
         nick_name: "nick11",
         comment: "Test3",
         date_created: "2020-07-15T11:49:09.000Z",
