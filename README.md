@@ -1111,6 +1111,7 @@ http://address:port/comment/list/"Input the Capsule Id"
         user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg",
         replies: [
             {
+                reply_id: 1,
                 nick_name: "nick11",
                 comment: "Test5",
                 date_created: "2020-07-15T11:49:39.000Z",
@@ -1118,6 +1119,7 @@ http://address:port/comment/list/"Input the Capsule Id"
                 user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
             },
             {
+                reply_id: 2,
                 nick_name: "nick11",
                 comment: "Test6",
                 date_created: "2020-07-15T11:49:43.000Z",
@@ -1125,6 +1127,7 @@ http://address:port/comment/list/"Input the Capsule Id"
                 user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
             },
             {
+                reply_id: 3,
                 nick_name: "nick11",
                 comment: "Test7",
                 date_created: "2020-07-15T11:49:46.000Z",
@@ -1132,6 +1135,7 @@ http://address:port/comment/list/"Input the Capsule Id"
                 user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
             },
             {
+                reply_id: 4,
                 nick_name: "nick12",
                 comment: "Test10",
                 date_created: "2020-07-15T11:50:10.000Z",
@@ -1139,6 +1143,7 @@ http://address:port/comment/list/"Input the Capsule Id"
                 user_image_url: "http://211.248.58.81:7070/contents/1592162405325.jpg"
             },
             {
+                reply_id: 5,
                 nick_name: "nick11",
                 comment: "Test8",
                 date_created: "2020-07-15T11:49:52.000Z",
@@ -1146,6 +1151,7 @@ http://address:port/comment/list/"Input the Capsule Id"
                 user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
             },
             {
+                reply_id: 6,
                 nick_name: "nick13",
                 comment: "Test10",
                 date_created: "2020-07-15T11:50:16.000Z",
@@ -1172,11 +1178,12 @@ http://address:port/comment/list/"Input the Capsule Id"
         user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg",
         replies: [
             {
-            nick_name: "nick11",
-            comment: "Test9",
-            date_created: "2020-07-15T11:49:59.000Z",
-            date_updated: "2020-07-15T11:49:59.000Z",
-            user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
+                reply_id: 7,
+                nick_name: "nick11",
+                comment: "Test9",
+                date_created: "2020-07-15T11:49:59.000Z",
+                date_updated: "2020-07-15T11:49:59.000Z",
+                user_image_url: "http://211.248.58.81:7070/contents/1592162266492.jpg"
             }
         ]
     }
