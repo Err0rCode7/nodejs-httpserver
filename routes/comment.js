@@ -47,7 +47,6 @@ router.get('/list/:capsuleId', async (req, res) => {
                                     r.id;`;
 
     let conn;
-
     try {
 
         conn = await pool.getConnection();
@@ -67,7 +66,7 @@ router.get('/list/:capsuleId', async (req, res) => {
 
         let childList = [];
         let commentList = [];
-        let temp_comment_id;
+        let temp_comment_id = -1;
         let temp_parent_nick;
         let temp_parent_comment;
         let temp_parent_date_created;
@@ -75,7 +74,6 @@ router.get('/list/:capsuleId', async (req, res) => {
         let temp_parent_image_url;
 
         rowCommentList.forEach( item => {
-
             if ( item.parent_image_url != undefined && ip.address() != config.url().ip) {
                 if (ip.address() != config.url().ip) {
                     item.parent_image_url = item.parent_image_url.replace(config.url().ip, ip.address());
@@ -101,7 +99,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                 parent_image_url,
                 child_image_url} = item;
 
-            if (count == 0){
+            if (count == 0 && count + 1 != commentList.length){
                 // No Reply
                 childList = [];
                 if (child_nick_name == null){
@@ -114,14 +112,8 @@ router.get('/list/:capsuleId', async (req, res) => {
                         user_image_url: parent_image_url,
                         replies: childList
                     });
-
-                } else {
-                    temp_comment_id = comment_id;
-                    temp_parent_nick = parent_nick_name;
-                    temp_parent_comment = parent_comment;
-                    temp_parent_date_created = parent_date_created;
-                    temp_parent_date_updated = parent_date_updated;
-                    temp_parent_image_url = parent_image_url;
+                    childList = [];
+                } else if (child_nick_name != null){
                     childList.push({
                         reply_id: reply_id,
                         nick_name: child_nick_name,
@@ -130,49 +122,101 @@ router.get('/list/:capsuleId', async (req, res) => {
                         date_updated: child_date_updated,
                         user_image_url: child_image_url
                     });
-                    count++;
                 }
-            } else {
+            } else if (count > 0) { //not first or endPoint
 
-                if (child_nick_name == null){
-                    commentList.push({
-                        comment_id: temp_comment_id,
-                        nick_name: temp_parent_nick,
-                        comment: temp_parent_comment,
-                        date_created: temp_parent_date_created,
-                        date_updated: temp_parent_date_updated,
-                        user_image_url: temp_parent_image_url,
-                        replies: childList
-                    });
-                    commentList.push({
-                        comment_id: comment_id,
-                        nick_name: parent_nick_name,
-                        comment: parent_comment,
-                        date_created: parent_date_created,
-                        date_updated: parent_date_updated,
-                        user_image_url: parent_image_url,
-                        replies: []
-                    })
-                    count = 0;
-
+                if (count + 1 == rowCommentList.length){ // Its EndPoint
+                    if (comment_id != temp_comment_id){
+                        commentList.push({
+                            comment_id: temp_comment_id,
+                            nick_name: temp_parent_nick,
+                            comment: temp_parent_comment,
+                            date_created: temp_parent_date_created,
+                            date_updated: temp_parent_date_updated,
+                            user_image_url: temp_parent_image_url,
+                            replies: childList
+                        });
+                        childList = [];
+    
+                        if (child_nick_name != null){
+                            childList.push({
+                                reply_id: reply_id,
+                                nick_name: child_nick_name,
+                                comment: child_comment,
+                                date_created: child_date_created,
+                                date_updated: child_date_updated,
+                                user_image_url: child_image_url
+                            });
+                        }
+        
+                        commentList.push({
+                            comment_id: comment_id,
+                            nick_name: parent_nick_name,
+                            comment: parent_comment,
+                            date_created: parent_date_created,
+                            date_updated: parent_date_updated,
+                            user_image_url: parent_image_url,
+                            replies: childList
+                        });
+                    } else {
+                        childList.push({
+                            reply_id: reply_id,
+                            nick_name: child_nick_name,
+                            comment: child_comment,
+                            date_created: child_date_created,
+                            date_updated: child_date_updated,
+                            user_image_url: child_image_url
+                        });
+                        commentList.push({
+                            comment_id: comment_id,
+                            nick_name: parent_nick_name,
+                            comment: parent_comment,
+                            date_created: parent_date_created,
+                            date_updated: parent_date_updated,
+                            user_image_url: parent_image_url,
+                            replies: childList
+                        });
+                    }
+                    
                 } else {
-                    temp_comment_id = comment_id;
-                    temp_parent_nick = parent_nick_name;
-                    temp_parent_comment = parent_comment;
-                    temp_parent_date_created = parent_date_created;
-                    temp_parent_date_updated = parent_date_updated;
-                    temp_parent_image_url = parent_image_url;
-                    childList.push({
-                        reply_id: reply_id,
-                        nick_name: child_nick_name,
-                        comment: child_comment,
-                        date_created: child_date_created,
-                        date_updated: child_date_updated,
-                        user_image_url: child_image_url,
-                    });
-                    count++; 
+                    if (comment_id != temp_comment_id){
+                        commentList.push({
+                            comment_id: temp_comment_id,
+                            nick_name: temp_parent_nick,
+                            comment: temp_parent_comment,
+                            date_created: temp_parent_date_created,
+                            date_updated: temp_parent_date_updated,
+                            user_image_url: temp_parent_image_url,
+                            replies: childList
+                        });
+                        childList = [];
+                    }
+    
+                    if (child_nick_name != null){
+                        childList.push({
+                            reply_id: reply_id,
+                            nick_name: child_nick_name,
+                            comment: child_comment,
+                            date_created: child_date_created,
+                            date_updated: child_date_updated,
+                            user_image_url: child_image_url,
+                        });
+                    }
                 }
             }
+
+
+
+
+
+            temp_comment_id = comment_id;
+            temp_parent_nick = parent_nick_name;
+            temp_parent_comment = parent_comment;
+            temp_parent_date_created = parent_date_created;
+            temp_parent_date_updated = parent_date_updated;
+            temp_parent_image_url = parent_image_url;
+
+            count++;
 
         });
         res.writeHead(200, {'Content-Type':'application/json'});
@@ -205,7 +249,7 @@ router.post('/', async (req, res) => {
         return;
     }
     */
-    const {user_id, nick_name, capsule_id, comment, parent_id} = req.body;
+    const {nick_name, capsule_id, comment, parent_id} = req.body;
 
     const createCommentQuery = `insert into comment ( capsule_id, comment, nick_name, date_created ) \
                                 values( ${capsule_id}, '${comment}', '${nick_name}', now());`;
