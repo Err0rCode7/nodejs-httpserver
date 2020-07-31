@@ -1260,7 +1260,7 @@ http://address:port/comment/"Input the Comment ID"
 #### Request Form Sample
     
 ```json
-http://address:port/comment/reply/"Input the Comment ID"
+http://address:port/comment/reply/"Input the Reply ID"
 ```
 
 #### Response Form Sample
