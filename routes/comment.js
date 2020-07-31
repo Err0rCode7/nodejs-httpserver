@@ -23,7 +23,7 @@ router.get('/list/:capsuleId', async (req, res) => {
     
 
     const capsule_id = req.params.capsuleId;
-    const selectCommentListQuery = `select \
+    const selectCommentListQuery = `select c.id as comment_id, \
                                     c.nick_name as parent_nick_name, \
                                     r.nick_name as child_nick_name, \
                                     c.comment as parent_comment, \
@@ -86,7 +86,8 @@ router.get('/list/:capsuleId', async (req, res) => {
                 }
             }
 
-            const {parent_nick_name, 
+            const { comment_id,
+                parent_nick_name, 
                 child_nick_name, 
                 parent_comment, 
                 child_comment,
@@ -102,6 +103,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                 childList = [];
                 if (child_nick_name == null){
                     commentList.push({
+                        comment_id: comment_id,
                         nick_name: parent_nick_name,
                         comment: parent_comment,
                         date_created: parent_date_created,
@@ -111,7 +113,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                     });
 
                 } else {
-
+                    temp_comment_id = comment_id;
                     temp_parent_nick = parent_nick_name;
                     temp_parent_comment = parent_comment;
                     temp_parent_date_created = parent_date_created;
@@ -130,6 +132,7 @@ router.get('/list/:capsuleId', async (req, res) => {
 
                 if (child_nick_name == null){
                     commentList.push({
+                        comment_id: temp_comment_id,
                         nick_name: temp_parent_nick,
                         comment: temp_parent_comment,
                         date_created: temp_parent_date_created,
@@ -138,6 +141,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                         replies: childList
                     });
                     commentList.push({
+                        comment_id: comment_id,
                         nick_name: parent_nick_name,
                         comment: parent_comment,
                         date_created: parent_date_created,
@@ -148,7 +152,7 @@ router.get('/list/:capsuleId', async (req, res) => {
                     count = 0;
 
                 } else {
-
+                    temp_comment_id = comment_id;
                     temp_parent_nick = parent_nick_name;
                     temp_parent_comment = parent_comment;
                     temp_parent_date_created = parent_date_created;
@@ -188,14 +192,14 @@ router.get('/list/:capsuleId', async (req, res) => {
 router.post('/', async (req, res) => {
 
     console.log("request Ip ( Post Comment ) :",req.connection.remoteAddress.replace('::ffff:', ''));
-
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
     }
-
+    */
     const {user_id, nick_name, capsule_id, comment, parent_id} = req.body;
 
     const createCommentQuery = `insert into comment ( capsule_id, comment, nick_name, date_created ) \
@@ -256,14 +260,14 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
 
     console.log("request Ip ( Deleting Comment ) :",req.connection.remoteAddress.replace('::ffff:', ''));
-
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
     }
-
+    */
     const id = req.params.id;
     const deleteCommentQuery = `delete from comment where id = ${id};`;
 
