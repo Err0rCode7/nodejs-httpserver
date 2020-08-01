@@ -701,6 +701,443 @@ router.post('/id', async (req, res) => {
     }
 });
 
+router.get('/follower/:nickName', async (req, res)=>{
+    
+    console.log("request Ip ( Get Capsules with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+    /*
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }*/
+    
+    const nick_name = req.params.nickName;
+    let conn;
+
+    const followerListQuery = `select \
+                            nick_name, \
+                            dest_nick_name \
+                        from follow;`;
+
+    const query = `select cap.capsule_id, \
+                            user_id, \
+                            cap.nick_name, \
+                            title, \
+                            text, \
+                            likes, \
+                            views, \
+                            date_created, \
+                            date_opened, \
+                            status_temp, \
+                            y(location) as lat, x(location) as lng, \
+                            content_id, \
+                            url, \
+                            lc.expire, \
+                            lc.status_lock, \
+                            lc.key_count, \
+                            lc.used_key_count,
+                            scu.nick_name as member \
+                        from capsule as cap \
+                        LEFT JOIN content as ct \
+                        ON cap.capsule_id = ct.capsule_id \
+                        LEFT JOIN lockedCapsule as lc \
+                        ON cap.capsule_id = lc.capsule_id \
+                        LEFT JOIN sharedCapsuleUser as scu \
+                        ON cap.capsule_id = scu.capsule_id \
+                        group by cap.capsule_id, ct.content_id, scu.id \
+                        ORDER BY capsule_id DESC;`;
+    try {
+
+        conn = await pool.getConnection();
+
+        const resultFollowerListQuery = await conn.query(followerListQuery);
+        const rowFollowerListQuery = resultFollowerListQuery[0];
+        
+        let followerList = [];
+        rowFollowerListQuery.forEach(row => {
+            if (row.nick_name != nick_name && !(followerList.includes(row.nick_name))){
+                followerList.push(row.nick_name);
+            }
+        });
+
+        const result = await conn.query(query);
+
+        let rows = result[0];
+        if (rows.length == 0) {
+
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify([]));
+
+        } else {
+
+            let index = 0;
+            let i = 0;          // capsule_count
+            let c_index = 0;    // content_count
+            let m_flag = 1;
+            let content = [];
+            let members = [];
+            let capsules = [];
+            
+            rows.forEach( item => {
+
+                if (followerList.includes(item.nick_name)){
+                    
+                    if (item.url != undefined && ip.address() != config.url().ip) {
+                        if (ip.address() != config.url().ip) {
+                            item.url = item.url.replace(config.url().ip, ip.address());
+                        }
+                    }
+    
+                    if (item.status_lock == null) {
+                        item.status_lock = 0;
+                        item.key_count = 0;
+                        item.used_key_count = 0;
+                    }
+
+                    if (item != undefined) {
+                        
+                        if (capsules.length > 0 && item.capsule_id == capsules[index].capsule_id) {
+                            if (c_index == 0) {
+                                if (item.content_id != null ){
+                                    content.push({
+                                        content_id: item.content_id,
+                                        url: item.url
+                                    });
+                                    c_index++;
+                                }
+                            }
+    
+                            if (c_index > 0) {
+                                if (content[c_index - 1].content_id != item.content_id && item.content_id != null) {
+                                    content.push({
+                                        content_id: item.content_id,
+                                        url: item.url
+                                    });
+                                    m_flag = 0;
+                                    c_index++;
+                                }
+                            }
+    
+                            if (m_flag == 1 && item.member != null) {
+                                members.push(item.member);
+                            }
+    
+                            if (rows.length - 1  == i) {
+                                capsules[index].content = content;
+                                capsules[index].members = members;
+                                c_index = 0;
+                            }
+    
+                        } else if (capsules.length == 0 || item.capsule_id != capsules[index].capsule_id) {
+                            if (capsules.length > 0){
+                                capsules[index].content = content;
+                                capsules[index].members = members;
+                                c_index = 0;
+                                m_flag = 1;
+                                index++;
+                                content = [];
+                                members = [];
+                                capsules[index] = {
+                                    capsule_id: item.capsule_id,
+                                    user_id: item.user_id,
+                                    nick_name: item.nick_name,
+                                    title: item.title,
+                                    text: item.text,
+                                    likes: item.likes,
+                                    views: item.views,
+                                    date_created: item.date_created,
+                                    date_opened: item.date_opened,
+                                    status_temp: item.status_temp,
+                                    lat: item.lat,
+                                    lng: item.lng,
+                                    expire: item.expire, 
+                                    status_lock: item.status_lock, 
+                                    key_count: item.key_count, 
+                                    used_key_count: item.used_key_count,
+                                    content:null,
+                                    members:null
+                                }
+        
+                                if (item.content_id != null) {
+                                    content.push({
+                                        content_id: item.content_id,
+                                        url: item.url
+                                    })
+                                    c_index++;
+                                }
+                                if (item.member != null) {
+                                    members.push(item.member);
+                                }
+            
+                                if (rows.length - 1  == i) {
+                                    capsules[index].content = content;
+                                    capsules[index].members = members;
+                                    c_index = 0;
+                                }
+                            } else if (capsules.length == 0) {
+                                let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
+                                    status_temp, lat, lng, expire, status_lock, key_count, used_key_count} = item;
+                                capsules.push({
+                                    capsule_id,
+                                    user_id,
+                                    nick_name,
+                                    title,
+                                    text,
+                                    likes,
+                                    views,
+                                    date_created,
+                                    date_opened,
+                                    status_temp,
+                                    lat,
+                                    lng,
+                                    expire, 
+                                    status_lock, 
+                                    key_count, 
+                                    used_key_count,
+                                    content:[],
+                                    members:[]
+                                });
+                            }
+                        }
+                    }
+                }
+                i = i + 1;
+            });
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify(capsules));
+        }
+
+    } catch (e) {
+        console.log(e);
+
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+        //res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+});
+
+router.get('/follow/:nickName', async (req, res)=>{
+    
+    console.log("request Ip ( Get Capsules with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+    /*
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }*/
+    
+    const nick_name = req.params.nickName;
+    let conn;
+
+    const followListQuery = `select \
+                            nick_name, \
+                            dest_nick_name \
+                        from follow;`;
+
+    const query = `select cap.capsule_id, \
+                            user_id, \
+                            cap.nick_name, \
+                            title, \
+                            text, \
+                            likes, \
+                            views, \
+                            date_created, \
+                            date_opened, \
+                            status_temp, \
+                            y(location) as lat, x(location) as lng, \
+                            content_id, \
+                            url, \
+                            lc.expire, \
+                            lc.status_lock, \
+                            lc.key_count, \
+                            lc.used_key_count,
+                            scu.nick_name as member \
+                        from capsule as cap \
+                        LEFT JOIN content as ct \
+                        ON cap.capsule_id = ct.capsule_id \
+                        LEFT JOIN lockedCapsule as lc \
+                        ON cap.capsule_id = lc.capsule_id \
+                        LEFT JOIN sharedCapsuleUser as scu \
+                        ON cap.capsule_id = scu.capsule_id \
+                        group by cap.capsule_id, ct.content_id, scu.id \
+                        ORDER BY capsule_id DESC;`;
+    try {
+
+        conn = await pool.getConnection();
+
+        const resultFollowListQuery = await conn.query(followListQuery);
+        const rowFollowListQuery = resultFollowListQuery[0];
+        
+        let followList = [];
+        rowFollowListQuery.forEach(row => {
+            if (row.nick_name == nick_name && !(followList.includes(row.dest_nick_name)))
+                followList.push(row.dest_nick_name);
+        });
+
+        const result = await conn.query(query);
+
+        let rows = result[0];
+        if (rows.length == 0) {
+
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify([]));
+
+        } else {
+
+            let index = 0;
+            let i = 0;          // capsule_count
+            let c_index = 0;    // content_count
+            let m_flag = 1;
+            let content = [];
+            let members = [];
+            let capsules = [];
+            
+            rows.forEach( item => {
+
+                if (followList.includes(item.nick_name)){
+                    
+                    if (item.url != undefined && ip.address() != config.url().ip) {
+                        if (ip.address() != config.url().ip) {
+                            item.url = item.url.replace(config.url().ip, ip.address());
+                        }
+                    }
+    
+                    if (item.status_lock == null) {
+                        item.status_lock = 0;
+                        item.key_count = 0;
+                        item.used_key_count = 0;
+                    }
+
+                    if (item != undefined) {
+                        
+                        if (capsules.length > 0 && item.capsule_id == capsules[index].capsule_id) {
+                            if (c_index == 0) {
+                                if (item.content_id != null ){
+                                    content.push({
+                                        content_id: item.content_id,
+                                        url: item.url
+                                    });
+                                    c_index++;
+                                }
+                            }
+    
+                            if (c_index > 0) {
+                                if (content[c_index - 1].content_id != item.content_id && item.content_id != null) {
+                                    content.push({
+                                        content_id: item.content_id,
+                                        url: item.url
+                                    });
+                                    m_flag = 0;
+                                    c_index++;
+                                }
+                            }
+    
+                            if (m_flag == 1 && item.member != null) {
+                                members.push(item.member);
+                            }
+    
+                            if (rows.length - 1  == i) {
+                                capsules[index].content = content;
+                                capsules[index].members = members;
+                                c_index = 0;
+                            }
+    
+                        } else if (capsules.length == 0 || item.capsule_id != capsules[index].capsule_id) {
+                            if (capsules.length > 0){
+                                capsules[index].content = content;
+                                capsules[index].members = members;
+                                c_index = 0;
+                                m_flag = 1;
+                                index++;
+                                content = [];
+                                members = [];
+                                capsules[index] = {
+                                    capsule_id: item.capsule_id,
+                                    user_id: item.user_id,
+                                    nick_name: item.nick_name,
+                                    title: item.title,
+                                    text: item.text,
+                                    likes: item.likes,
+                                    views: item.views,
+                                    date_created: item.date_created,
+                                    date_opened: item.date_opened,
+                                    status_temp: item.status_temp,
+                                    lat: item.lat,
+                                    lng: item.lng,
+                                    expire: item.expire, 
+                                    status_lock: item.status_lock, 
+                                    key_count: item.key_count, 
+                                    used_key_count: item.used_key_count,
+                                    content:null,
+                                    members:null
+                                }
+        
+                                if (item.content_id != null) {
+                                    content.push({
+                                        content_id: item.content_id,
+                                        url: item.url
+                                    })
+                                    c_index++;
+                                }
+                                if (item.member != null) {
+                                    members.push(item.member);
+                                }
+            
+                                if (rows.length - 1  == i) {
+                                    capsules[index].content = content;
+                                    capsules[index].members = members;
+                                    c_index = 0;
+                                }
+                            } else if (capsules.length == 0) {
+                                let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
+                                    status_temp, lat, lng, expire, status_lock, key_count, used_key_count} = item;
+                                capsules.push({
+                                    capsule_id,
+                                    user_id,
+                                    nick_name,
+                                    title,
+                                    text,
+                                    likes,
+                                    views,
+                                    date_created,
+                                    date_opened,
+                                    status_temp,
+                                    lat,
+                                    lng,
+                                    expire, 
+                                    status_lock, 
+                                    key_count, 
+                                    used_key_count,
+                                    content:[],
+                                    members:[]
+                                });
+                            }
+                        }
+                    }
+                }
+                i = i + 1;
+            });
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify(capsules));
+        }
+
+    } catch (e) {
+        console.log(e);
+
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+        //res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+});
+
 router.get('/f4f/:nickName', async (req, res)=>{
     
     console.log("request Ip ( Get Capsules with nickName ) :",req.connection.remoteAddress.replace('::ffff:', ''));
@@ -928,6 +1365,7 @@ router.get('/f4f/:nickName', async (req, res)=>{
         conn.release();
     }
 });
+
 // Capsule 임시저장
 router.post('/', async (req,res) => {
 
