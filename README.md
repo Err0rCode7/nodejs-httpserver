@@ -478,7 +478,7 @@ http://address:port/capsules/nick/"Input the nick"
 #### Request Form Sample
     
 ```
-http://address:port/capsules/nick/"Input the nick"
+http://address:port/capsules/f4f/"Input the nick"
 ```
 
 #### Response Form Sample
