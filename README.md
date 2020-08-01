@@ -467,6 +467,136 @@ http://address:port/capsules/nick/"Input the nick"
 ]
 ```
 
+### Get Capsules with Follow and Nick Name
+    
+- Get/ `./capsules/follow/:nickName`
+    - Response list of capsules which a user of follow-list-members made
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```
+http://address:port/capsules/follow/"Input the nick"
+```
+
+#### Response Form Sample
+```json
+[
+    {
+        capsule_id: 33,
+        user_id: "x_sungjun_x",
+        nick_name: "nick15",
+        title: "당일치기 제주도 !!",
+        text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~",
+        likes: 0,
+        views: 0,
+        date_created: "2020-06-14T19:49:07.000Z",
+        date_opened: "2020-06-14T19:49:07.000Z",
+        status_temp: 0,
+        lat: 37.431,
+        lng: 126.6801,
+        expire: null,
+        status_lock: 0,
+        key_count: 0,
+        used_key_count: 0,
+        content: [ ],
+        members: [ ]
+    },
+    {
+        capsule_id: 24,
+        user_id: "x_sungjun_x",
+        nick_name: "nick15",
+        title: "당일치기 제주도 !!",
+        text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~",
+        likes: 0,
+        views: 0,
+        date_created: "2020-06-14T19:28:57.000Z",
+        date_opened: "2020-06-14T19:28:57.000Z",
+        status_temp: 0,
+        lat: 37.5382,
+        lng: 126.9772,
+        expire: null,
+        status_lock: 0,
+        key_count: 0,
+        used_key_count: 0,
+        content: [
+            {
+                content_id: 47,
+                url: "http://59.13.134.140:7070/contents/1592162947453.jpg"
+            }
+        ],
+        members: [ ]
+    }
+]
+```
+
+### Get Capsules with Follower and Nick Name
+    
+- Get/ `./capsules/follow/:nickName`
+    - Response list of capsules which a user of follower-list-members made
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404
+
+#### Request Form Sample
+    
+```
+http://address:port/capsules/follower/"Input the nick"
+```
+
+#### Response Form Sample
+```json
+[
+    {
+        capsule_id: 33,
+        user_id: "x_sungjun_x",
+        nick_name: "nick15",
+        title: "당일치기 제주도 !!",
+        text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~",
+        likes: 0,
+        views: 0,
+        date_created: "2020-06-14T19:49:07.000Z",
+        date_opened: "2020-06-14T19:49:07.000Z",
+        status_temp: 0,
+        lat: 37.431,
+        lng: 126.6801,
+        expire: null,
+        status_lock: 0,
+        key_count: 0,
+        used_key_count: 0,
+        content: [ ],
+        members: [ ]
+    },
+    {
+        capsule_id: 24,
+        user_id: "x_sungjun_x",
+        nick_name: "nick15",
+        title: "당일치기 제주도 !!",
+        text: "소영이랑 첫 여행으로 부산에 캡슐!! 너무 더워서 기억에 남던 여행~~ 다음에 올때는 우리가 어떻게 달라져있을지 궁금하다~",
+        likes: 0,
+        views: 0,
+        date_created: "2020-06-14T19:28:57.000Z",
+        date_opened: "2020-06-14T19:28:57.000Z",
+        status_temp: 0,
+        lat: 37.5382,
+        lng: 126.9772,
+        expire: null,
+        status_lock: 0,
+        key_count: 0,
+        used_key_count: 0,
+        content: [
+            {
+                content_id: 47,
+                url: "http://59.13.134.140:7070/contents/1592162947453.jpg"
+            }
+        ],
+        members: [ ]
+    }
+]
+```
+
 ### Get Capsules with Follow For Follow and Nick Name
     
 - Get/ `./capsules/f4f/:nickName`
