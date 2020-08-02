@@ -734,6 +734,31 @@ http://address:port/capsules/f4f/"Input the nick"
 }
 ```
 
+### Post Key - LockedCapsules
+
+- Post/ `./capsules/lock/key`
+    - Use key to open LockedCapsule
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+    
+```json
+{
+	"nick_name" : "__",
+    "capsule_id" : __
+}
+```
+
+#### Response Form Sample
+```json
+{
+    "success": true
+}
+```
+
 ### Put Capsules
 
 - Put/ `./capsules`
