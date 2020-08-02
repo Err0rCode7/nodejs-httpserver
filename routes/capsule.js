@@ -1387,8 +1387,8 @@ router.post('/', async (req,res) => {
         if (lat > 90 || lat < -90 || lng > 180 || lng < -180)
             throw{name: 'lat_lng_Exception', message: "Post Capsule - this lat, lng is not correct"};
         const userIdQuery = `select user_id from user where nick_name = '${nick_name}';`;
-
-
+        
+        await conn.beginTransaction();
         const idResult = await conn.query(userIdQuery);
 
         if (idResult[0].length == 0) {
@@ -1400,13 +1400,85 @@ router.post('/', async (req,res) => {
         values('${user_id}', '${nick_name}', true, point(${lng}, ${lat}));`
 
         //console.log(query);
-        await conn.beginTransaction();
 
         const insResult = await conn.query(query);
         //console.log(insResult);
         if (insResult[0].affectedRows == 0 )
             throw {name: 'insertNotCapsuleException', message: 'Post-Insert Not Capsule Exception'};
 
+        await conn.commit();
+
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end('{"success": true}');
+
+    } catch (e) {
+        await conn.rollback;
+
+        if (e.name == 'undefinedBodyException') {
+            console.log(e.message);
+        } else {
+            console.log(e.message);
+        }
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end('{"success": false}');
+    } finally {
+        conn.release();
+    }
+    
+
+});
+
+router.post('/lock/key', async (req,res) => {
+
+
+    console.log("request Ip ( Post Lock Key ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
+    const { nick_name, capsule_id } = req.body; 
+    let conn;
+
+    try {
+
+        conn = await pool.getConnection();
+        await conn.beginTransaction();
+
+        if (nick_name == undefined || capsule_id == undefined) {
+            throw {name: 'undefinedBodyException', message: "Post Capsule - Capsule_info not exist "};
+        }
+
+        const sharedUserQuery = `select cap.capsule_id, scu.key from sharedCapsuleUser as scu \
+                            LEFT JOIN capsule as cap \
+                            ON scu.capsule_id = cap.capsule_id \
+                            where (scu.nick_name = '${nick_name}') \
+                            and cap.capsule_id = ${capsule_id};`;
+        
+        const sharedUserResult = await conn.query(sharedUserQuery);
+
+        if (sharedUserResult[0].length == 0)
+            throw{name: 'Not_SharedUser_Error', message: "Post lockedCapsule-Key - this user dont have authorization"};
+        if (sharedUserResult[0][0].key == 0)
+            throw{name: 'SharedUser_Key_Error', message: "Post lockedCapsule-Key - this user use Key already"};
+
+        const useKeyQuery = `update lockedCapsule set used_key_count = used_key_count + 1 \
+                    where key_count > used_key_count and capsule_id = ${capsule_id} \
+                    and TIMESTAMPDIFF(SECOND, expire, now()) >= 0;`;
+        //console.log(query);
+        const updateKeyQuery = `update sharedCapsuleUser set \`key\` = 0 \
+                            where \`key\` = 1 and nick_name = '${nick_name}' \
+                            and capsule_id = ${capsule_id};`;
+        const updResult = await conn.query(updateKeyQuery + useKeyQuery);
+        console.log(updResult);
+        if (updResult[0][0].affectedRows == 0)
+            throw {name: 'CantUpdateLockedCapsuleException', message: 'Post-User have no key'};
+        if (updResult[0][1].affectedRows == 0)
+            throw {name: 'CantUpdateLockedCapsuleException', message: 'Post-Cant update lockedCapsule Exception'};
         await conn.commit();
 
         res.writeHead(200, {'Content-Type':'application/json'});
@@ -1648,7 +1720,7 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
         res.end();
         return;
     }
-
+    
     let conn;
     
     const filesInfo = req.files
@@ -1656,7 +1728,6 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
     const expire = req.body.expire;
     let members = req.body.members;
     let {title, text} = req.body;
-
     // mysql ' " exception control
     title = title.replace("'","\\'").replace('"','\\"');
 
@@ -1671,12 +1742,28 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
 
         conn = await pool.getConnection();
 
-        if (capsule_id == undefined || title == undefined || filesInfo == undefined ) {
-            throw {name: 'undefinedBodyException', message: "Put Put LockedCapsule - Capsule_info not exist"};
-        }
+        if (capsule_id == undefined || title == undefined || filesInfo == undefined || members == undefined )
+            throw {name: 'undefinedBodyException', message: "Put LockedCapsule - Capsule_info not exist"};
 
+        if (!Array.isArray(members))
+            throw {name: 'MembersException', message: "Put LockedCapsule - Members Object is not Array"};
+
+        // DB Transaction Start
+        await conn.beginTransaction();
+
+        const checkCapsuleQuery = `select nick_name from capsule as cap \
+                                where cap.capsule_id = ${capsule_id};`;
+
+        const checkCapsuleResult = await conn.query(checkCapsuleQuery);
+        const checkCapsuleRows = checkCapsuleResult[0];
+        
+        if (checkCapsuleRows.length == 0)
+            throw {name: 'CheckException', message: "Put LockedCapsule - capsule_id is invalid"};
+
+
+
+        const nick_name = checkCapsuleRows[0].nick_name;
         const status_temp = 0;
-
         let insertQuerys = "";
 
         const updateQuery = `update capsule SET \
@@ -1710,8 +1797,7 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
         insertQuerys = insertQuerys + insertQuery;
 
         });
-        // DB Transaction Start
-        await conn.beginTransaction();
+
         const updResult = await conn.query(updateQuery + lockedCapsuleQuery);
         const insResult = await conn.query(insertQuerys);
 
@@ -1727,13 +1813,18 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
             if (result.affectedRows == 0)
                 throw {name: 'putCapsuleNotInsertException', message: "Put Put LockedCapsule(Content)-Not-Insert Error"};
         })
+        
+        // lockedCapsule 작성자 
+        let sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values (${nick_name}, ${capsule_id});`
+        let sharedCapsuleUserResult = await conn.query(sharedCapsuleUserQuery);
+        if (sharedCapsuleUserResult[0].affectedRows == 0)
+                    throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule-SharedMember-Not-Insert Error"};
 
-        let sharedCapsuleUserResult;
-
+        // lockedCapsule 멤버들
         if (members.length > 0){
             members.forEach(async (member) => {
-                let sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values (${member}, ${capsule_id});`
-                let sharedCapsuleUserResult = await conn.query(sharedCapsuleUserQuery);
+                sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values (${member}, ${capsule_id});`
+                sharedCapsuleUserResult = await conn.query(sharedCapsuleUserQuery);
                 if (sharedCapsuleUserResult[0].affectedRows == 0)
                     throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule-SharedMember-Not-Insert Error"};
             })
@@ -1804,10 +1895,27 @@ router.put('/lock', async (req, res) => {
 
         conn = await pool.getConnection();
 
+
         if ( capsule_id == undefined || title == undefined || expire == undefined || members == undefined) {
             throw {name: 'undefinedBodyException', message: "Put LockedCapsule - Capsule_info not exist"};
         }
 
+        if (!Array.isArray(members))
+            throw {name: 'MembersException', message: "Put LockedCapsule - Members Object is not Array"};
+
+        // DB Transaction Start
+        await conn.beginTransaction();
+
+        const checkCapsuleQuery = `select nick_name from capsule as cap \
+                                where cap.capsule_id = ${capsule_id};`;
+
+        const checkCapsuleResult = await conn.query(checkCapsuleQuery);
+        const checkCapsuleRows = checkCapsuleResult[0];
+        
+        if (checkCapsuleRows.length == 0)
+            throw {name: 'CheckException', message: "Put LockedCapsule - capsule_id is invalid"};
+
+        const nick_name = checkCapsuleRows[0].nick_name;
 
         const updateQuery = `update capsule SET \
                                 title = '${title}', \
@@ -1818,8 +1926,6 @@ router.put('/lock', async (req, res) => {
                                 status_temp = 1;`;
 
         const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length});`;
-        // DB Transaction Start
-        await conn.beginTransaction();
         const Result = await conn.query(updateQuery + lockedCapsuleQuery);
 
         if (Result[0].affectedRows == 0)
@@ -1829,6 +1935,7 @@ router.put('/lock', async (req, res) => {
         
         let sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values (?, ${capsule_id});`
         let sharedCapsuleUserResult;
+        members.push(nick_name);
         if (members.length > 0){
             members.forEach(async (member) => {
                 sharedCapsuleUserResult = await conn.query(sharedCapsuleUserQuery, member);
