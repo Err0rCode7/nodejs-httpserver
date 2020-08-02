@@ -191,13 +191,13 @@ create table `sharedCapsuleUser`(
     id int UNSIGNED NOT NULL AUTO_INCREMENT,
     nick_name varchar(15) character set utf8 NOT NULL,
     capsule_id int UNSIGNED NOT NULL,
+    key boolean DEFAULT true NOT NULL,
     CONSTRAINT SHARED_CAPSULE_USER_CAPSULE_ID_FK foreign key (capsule_id) references capsule (capsule_id) on delete cascade on update cascade,
     CONSTRAINT SHARED_CAPSULE_USER_NICK_FK foreign key (nick_name) references user (nick_name) on delete cascade on update cascade,
     unique key(nick_name, capsule_id),
     primary key(id)
 );
 ```
-
 
 ## Procedure
 
