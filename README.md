@@ -391,8 +391,14 @@ http://address:port/capsules/location?lnt=__&lat=__
         key_count: 2,
         used_key_count: 0,
         members: [
-            "nick16",
-            "nick17"
+            {
+                nick_name : "nick16",
+                status_key : 1
+            },
+            {
+                nick_name : "nick17",
+                status_key : 1
+            }
         ]
     }
 ]

@@ -144,7 +144,8 @@ router.get('/location', async (req, res) => {
                             status_lock, \
                             key_count, \
                             used_key_count, \
-                            scu.nick_name as member
+                            scu.nick_name as member, \
+                            scu.key as status_key
                         from capsule \
                         LEFT JOIN lockedCapsule lc \
                         ON capsule.capsule_id = lc.capsule_id \
@@ -207,7 +208,10 @@ router.get('/location', async (req, res) => {
     
                 if (capsules[capsules.length - 1].capsule_id == row.capsule_id){
                     if (row.member != null)
-                        members.push(row.member);
+                        members.push({
+                            nick_name: row.member,
+                            status_key: row.status_key
+                        });
                     if (index + 1 == rows.length)
                         capsules[capsules.length - 1].members = members
                 } else {
@@ -236,7 +240,10 @@ router.get('/location', async (req, res) => {
                         members:null
                     });
                     if (row.member != null)
-                        members.push(row.member);
+                        members.push({
+                            nick_name: row.member,
+                            status_key: row.status_key
+                        });
                     if (index + 1 == rows.length)
                         capsules[capsules.length - 1].members = members
                 }
