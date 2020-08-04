@@ -707,9 +707,22 @@ http://address:port/capsules/f4f/"Input the nick"
     like_flag: 1,
     content: [ ],
     members: [
-        "nick16",
-        "nick17",
-        "nick18"
+            {
+                nick_name : "nick16",
+                status_key : 1
+            },
+            {
+                nick_name : "nick17",
+                status_key : 1
+            },
+            {
+                nick_name : "nick18",
+                status_key : 1
+            },
+            {
+                nick_name : "nick14",
+                status_key : 1
+            }
     ]
 }
 ```

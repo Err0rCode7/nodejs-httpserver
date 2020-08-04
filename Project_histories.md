@@ -993,8 +993,8 @@ http://address:port/capsules/nick/"Input the nick"
 ### Post Capsules With Capsule_id, Nick_name
     
 - Post/ `./capsules/id`
-    - Response a capsule has this capsule_id including whether a user has Nick_name likes this capsule 
-    
+    - Response a capsule has this capsule_id including whether a user has Nick_name likes this capsule
+    -
 - Success Response : Header with Code 200
 - Fail Response : Header with Code 404
 
@@ -1029,9 +1029,22 @@ http://address:port/capsules/nick/"Input the nick"
     like_flag: 1,
     content: [ ],
     members: [
-        "nick16",
-        "nick17",
-        "nick18"
+            {
+                nick_name : "nick16",
+                status_key : 1
+            },
+            {
+                nick_name : "nick17",
+                status_key : 1
+            },
+            {
+                nick_name : "nick18",
+                status_key : 1
+            },
+            {
+                nick_name : "nick14",
+                status_key : 1
+            }
     ]
 }
 ```

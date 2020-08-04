@@ -215,7 +215,6 @@ router.get('/location', async (req, res) => {
                     if (index + 1 == rows.length)
                         capsules[capsules.length - 1].members = members
                 } else {
-                    console.log(capsules[capsules.length - 1].capsule_id, row.capsule_id)
                     capsules[capsules.length - 1].members = members
                     members = [];
                     let { capsule_id, user_id, nick_name, title, text, likes, views, date_created, date_opened,
@@ -497,7 +496,8 @@ router.post('/id', async (req, res) => {
                             lc.key_count, \
                             lc.used_key_count,
                             scu.nick_name as member, \
-                            count(li.nick_name) as like_flag
+                            scu.key as status_key, \
+                            count(li.nick_name) as like_flag \
                         from capsule as cap \
                         LEFT JOIN content as ct \
                         ON cap.capsule_id = ct.capsule_id \
@@ -629,7 +629,10 @@ router.post('/id', async (req, res) => {
                         }
 
                         if (m_flag == 1 && item.member != null) {
-                            members.push(item.member);
+                            members.push({
+                                nick_name: item.member,
+                                status_key: item.status_key
+                            });
                         }
 
                         if (rows.length - 1  == i) {
@@ -677,7 +680,10 @@ router.post('/id', async (req, res) => {
                             c_index++;
                         }
                         if (item.member != null) {
-                            members.push(item.member);
+                            members.push({
+                                nick_name: item.member,
+                                status_key: item.status_key
+                            });
                         }
     
                         if (rows.length - 1  == i) {
