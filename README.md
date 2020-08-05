@@ -169,8 +169,7 @@ http://address:port/users/"Input the user_id"
 #### Request Form Sample
     
 ```json
-@Header(has SessionID)
-http://address:port/users/logout/
+http://address:port/users/auth/
 ```
 
 #### Response Form Sample
@@ -191,7 +190,8 @@ http://address:port/users/logout/
 #### Request Form Sample
     
 ```json
-
+@Header(has SessionID)
+http://address:port/users/logout/
 ```
 
 #### Response Form Sample
