@@ -1446,14 +1446,14 @@ router.post('/lock/key', async (req,res) => {
 
     console.log("request Ip ( Post Lock Key ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
     }
-
+    */
     const { nick_name, capsule_id } = req.body; 
     let conn;
 
@@ -1741,6 +1741,7 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
     const expire = req.body.expire;
     let members = req.body.members;
     let {title, text} = req.body;
+    console.log(filesInfo, capsule_id, expire, members, title, text);
     // mysql ' " exception control
     title = title.replace("'","\\'").replace('"','\\"');
 
@@ -1787,7 +1788,7 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
                                 where capsule_id = ${capsule_id} AND \
                                 status_temp = 1;`;
 
-        const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length});`;
+        const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length} + 1);`;
        await filesInfo.forEach( item =>{
 
         const content_name = item.filename;
@@ -1828,7 +1829,7 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
         })
         
         // lockedCapsule 작성자 
-        let sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values (${nick_name}, ${capsule_id});`
+        let sharedCapsuleUserQuery = `insert into sharedCapsuleUser (nick_name, capsule_id) values ('${nick_name}', ${capsule_id});`
         let sharedCapsuleUserResult = await conn.query(sharedCapsuleUserQuery);
         if (sharedCapsuleUserResult[0].affectedRows == 0)
                     throw {name: 'putCapsuleNotUpdateException', message: "Put LockedCapsule-SharedMember-Not-Insert Error"};
@@ -1938,7 +1939,7 @@ router.put('/lock', async (req, res) => {
                                 where capsule_id = ${capsule_id} AND \
                                 status_temp = 1;`;
 
-        const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length});`;
+        const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length} + 1);`;
         const Result = await conn.query(updateQuery + lockedCapsuleQuery);
 
         if (Result[0].affectedRows == 0)

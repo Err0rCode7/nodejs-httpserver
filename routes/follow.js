@@ -13,14 +13,14 @@ router.get('/followlist/:nickName', async (req, res) => {
 
     console.log("request Ip ( Get Follow List ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const nickName = req.params.nickName;
-
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
     }
-
+    */
     const followListQuery = `select \
                                 user.nick_name as nick_name, \
                                 user.first_name as first_name, \
@@ -85,14 +85,14 @@ router.get('/followerlist/:nickName', async (req, res) => {
 
     console.log("request Ip ( Get Follower List ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const nickName = req.params.nickName;
-
+    /*
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
     }
-
+    */
     const followerListQuery = `select \
                                 user.nick_name as nick_name, \
                                 user.first_name as first_name, \
@@ -173,11 +173,15 @@ router.get('/forfollow/list/:nickName', async (req, res) => {
                                 user.image_url as image_url, \
                                 user.image_name as image_name \
                             from follow as fl \
+                            INNER JOIN (select fd.nick_name,
+                                            fd.dest_nick_name
+                                from follow as fd where fd.dest_nick_name = '${nickName}') fl2 \
+                            ON (fl2.nick_name = fl.dest_nick_name) \
                             INNER JOIN user \
                             ON (fl.nick_name = user.nick_name) \
+                            where fl.nick_name = '${nickName}' \
                             ORDER BY fl.id;`
-
-
+    
     let conn;
 
     try {
@@ -191,13 +195,13 @@ router.get('/forfollow/list/:nickName', async (req, res) => {
 
         const resultF4fListQuery = await conn.query(f4fListQuery);
         const rowF4FListQuery = resultF4fListQuery[0];
-
+        console.log(rowF4FListQuery)
         if (ip.address() != config.url().ip) {
             rowF4FListQuery.forEach(row => {
                 row.image_url = row.image_url.replace(config.url().ip, ip.address());
             });
         }
-        
+        /*
         let followList = [];
         let followerList = [];
         rowF4FListQuery.forEach(row => {
@@ -223,11 +227,11 @@ router.get('/forfollow/list/:nickName', async (req, res) => {
             if (followList.includes(followerRow.nick_name))
                 f4f.push(followerRow);
         });
-
+        */
         await conn.commit();
 
         res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(f4f));
+        res.end(JSON.stringify(rowF4FListQuery));
 
     } catch (e) {
 
