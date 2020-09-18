@@ -246,13 +246,6 @@ router.post('/with/image', upload.single("file") ,async (req, res) =>{
 
     console.log("request Ip ( Post User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-    
-    if(req.session.nick_name == undefined){
-        console.log("   Session nick is undefined ");
-        res.writeHead(401, {'Content-Type':'application/json'});
-        res.end();
-        return;
-    }
 
     const fileInfo = req.file;
     const {user_id, password, nick_name, first_name, last_name, email} = req.body;
@@ -342,13 +335,6 @@ router.post('/', async (req, res) => {
 
     console.log("request Ip ( Post User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-
-    if(req.session.nick_name == undefined){
-        console.log("   Session nick is undefined ");
-        res.writeHead(401, {'Content-Type':'application/json'});
-        res.end();
-        return;
-    }
 
     //console.log(req.body);
     const {user_id, password, nick_name, first_name, last_name, email} = req.body;
