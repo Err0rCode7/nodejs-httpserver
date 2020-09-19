@@ -258,6 +258,35 @@ http://address:port/users/logout/
 }
 ```
 
+### Put A User With Image no password
+
+- Put/ `./users/image/nick`
+    - Put a user with image
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+
+
+```json
+@multipart
+{
+    "pre_nick_name": "__",
+    "new_nick_name": "__",
+    "file": __
+}
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```
+
 ### Delete A User
 
 - Delete/ `./users`
