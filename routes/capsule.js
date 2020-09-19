@@ -1756,11 +1756,12 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
 
         conn = await pool.getConnection();
 
-        if (capsule_id == undefined || title == undefined || filesInfo == undefined || members == undefined )
+        if (capsule_id == undefined || title == undefined || filesInfo == undefined || members == undefined)
             throw {name: 'undefinedBodyException', message: "Put LockedCapsule - Capsule_info not exist"};
 
         if (!Array.isArray(members))
-            throw {name: 'MembersException', message: "Put LockedCapsule - Members Object is not Array"};
+            members = Array()
+            //throw {name: 'MembersException', message: "Put LockedCapsule - Members Object is not Array"};
 
         // DB Transaction Start
         await conn.beginTransaction();
@@ -1787,7 +1788,9 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
                                 status_temp = 0 \
                                 where capsule_id = ${capsule_id} AND \
                                 status_temp = 1;`;
-
+        if (members == "") {
+            members = Array()
+        }
         const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length} + 1);`;
        await filesInfo.forEach( item =>{
 
@@ -1890,7 +1893,7 @@ router.put('/lock', async (req, res) => {
     */
     let conn;
     console.log(req.body);
-    const {capsule_id, members, expire} = req.body;
+    let {capsule_id, members, expire} = req.body;
     let {text, title} = req.body;
 
     const status_temp = 0;
@@ -1915,7 +1918,8 @@ router.put('/lock', async (req, res) => {
         }
 
         if (!Array.isArray(members))
-            throw {name: 'MembersException', message: "Put LockedCapsule - Members Object is not Array"};
+            members = Array()
+            //throw {name: 'MembersException', message: "Put LockedCapsule - Members Object is not Array"};
 
         // DB Transaction Start
         await conn.beginTransaction();
