@@ -162,7 +162,7 @@ router.get('/forfollow/list/:nickName', async (req, res) => {
     }
     */
     const f4fListQuery = `select \
-                                user.nick_name as nick_name, \
+                                fl.nick_name as nick_name, \
                                 fl.dest_nick_name as dest_nick_name, \
                                 user.first_name as first_name, \
                                 user.last_name as last_name, \
@@ -178,8 +178,9 @@ router.get('/forfollow/list/:nickName', async (req, res) => {
                                 from follow as fd where fd.dest_nick_name = '${nickName}') fl2 \
                             ON (fl2.nick_name = fl.dest_nick_name) \
                             INNER JOIN user \
-                            ON (fl.nick_name = user.nick_name) \
-                            where fl.nick_name = '${nickName}' \
+                            ON (fl.dest_nick_name = user.nick_name) \
+                            where fl.nick_name = '${nickName}' and \
+                                fl.dest_nick_name <> '${nickName}'
                             ORDER BY fl.id;`
     
     let conn;
@@ -195,7 +196,6 @@ router.get('/forfollow/list/:nickName', async (req, res) => {
 
         const resultF4fListQuery = await conn.query(f4fListQuery);
         const rowF4FListQuery = resultF4fListQuery[0];
-        console.log(rowF4FListQuery)
         if (ip.address() != config.url().ip) {
             rowF4FListQuery.forEach(row => {
                 row.image_url = row.image_url.replace(config.url().ip, ip.address());
