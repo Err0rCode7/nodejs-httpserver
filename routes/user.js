@@ -642,13 +642,13 @@ router.put('/image/nick', upload.single("file") ,async (req, res) =>{
 
     console.log("request Ip ( Put User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-    /*
+    
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
-    }*/
+    }
 
     const fileInfo = req.file;
     const {pre_nick_name, new_nick_name} = req.body;
