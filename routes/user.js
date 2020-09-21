@@ -742,7 +742,7 @@ router.put('/nick', async (req, res) => {
 
     console.log("request Ip ( Put User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-
+    
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
@@ -798,7 +798,7 @@ router.put('/only/image', upload.single("file") ,async (req, res) =>{
 
     console.log("request Ip ( Put User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-    
+
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
@@ -929,7 +929,6 @@ router.put('/password', async (req, res) => {
         
         await conn.commit();
 
-        req.session.nick_name = new_nick_name;
         await req.session.save(()=>{
             res.writeHead(200, {'Content-Type':'application/json'});
             res.end('{"success": true}'); 
