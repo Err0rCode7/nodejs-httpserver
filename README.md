@@ -314,7 +314,7 @@ http://address:port/users/logout/
 }
 ```
 
-### Put image of a user
+### Put Image Of A User
 
 - Put/ `./users/only/image`
     - Put image of a user

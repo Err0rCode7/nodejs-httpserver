@@ -1369,7 +1369,7 @@ http://address:port/capsules/follower/"Input the nick"
 }
 ```
 
-### Put image of a user
+### Put Image Of A User
 
 - Put/ `./users/only/image`
     - Put image of a user
