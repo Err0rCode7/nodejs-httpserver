@@ -162,8 +162,7 @@ router.get('/forfollow/list/:nickName', async (req, res) => {
     }
     */
     const f4fListQuery = `select \
-                                fl.nick_name as nick_name, \
-                                fl.dest_nick_name as dest_nick_name, \
+                                fl.dest_nick_name as nick_name, \
                                 user.first_name as first_name, \
                                 user.last_name as last_name, \
                                 user.date_created as date_created, \
