@@ -1340,3 +1340,86 @@ http://address:port/capsules/follower/"Input the nick"
     "success": "__"
 }
 ```
+
+
+### Put A User With Nick Name
+
+- Put/ `./users/nick`
+    - Put a user with nick name
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+
+
+```json
+{
+    "pre_nick_name": "__",
+    "new_nick_name": "__"
+}
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```
+
+### Put image of a user
+
+- Put/ `./users/only/image`
+    - Put image of a user
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+
+
+```json
+@multipart
+{
+    "nick_name": "__",
+    "file": __
+}
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```
+
+### Put A User With Password
+
+- Put/ `./users/nick`
+    - Put a user with password
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+
+
+```json
+{
+    "nick_name": "__",
+    "password": "__"
+}
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```

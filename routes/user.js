@@ -476,7 +476,6 @@ router.post('/logout', async (req, res) =>{
 
 });
 
-
 router.put('/', async (req, res) => {
 
 
@@ -736,6 +735,214 @@ router.put('/image/nick', upload.single("file") ,async (req, res) =>{
     }
 
 
+});
+
+router.put('/nick', async (req, res) => {
+
+
+    console.log("request Ip ( Put User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
+    const {pre_nick_name, new_nick_name} = req.body;
+    const query = `update user set \
+    nick_name = "${new_nick_name}", \
+    date_updated = now() \
+    where nick_name = "${pre_nick_name}";`;
+
+    let conn;
+
+    try {
+    
+        conn = await pool.getConnection();
+
+        await conn.beginTransaction();
+     
+        if(pre_nick_name == undefined || new_nick_name == undefined || 
+            pre_nick_name == '' || new_nick_name == '') {
+            throw {name: 'undefinedBodyException', message: "Put User - user_info not exist"};
+        }
+
+
+        const result = await conn.query(query);
+        const rows = result[0];
+        if (rows.affectedRows == 0)
+            throw "Exception : Cant Update User";
+        
+        await conn.commit();
+
+        req.session.nick_name = new_nick_name;
+        await req.session.save(()=>{
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end('{"success": true}'); 
+        });
+        
+    } catch (e) {
+        await conn.rollback();
+        console.log(e);
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end('{"success": false}'); 
+    } finally {
+        conn.release();
+    }
+
+});
+
+router.put('/only/image', upload.single("file") ,async (req, res) =>{
+
+    console.log("request Ip ( Put User with image ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+    
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
+    const fileInfo = req.file;
+    const {nick_name} = req.body;
+    const fileName = fileInfo.filename;
+    const fileUrl = "http://" + config.url().ip + ":" + config.url().port.toString() +
+                    "/contents/" + fileName;
+
+    let conn;
+
+    const query = `update user set \
+    date_updated = now(), \
+    image_url = "${fileUrl}", \
+    image_name = "${fileName}" \
+    where nick_name = "${nick_name}";`;
+
+    const selectQuery = `select image_url, image_name from user where nick_name = '${nick_name}';`;
+    try {
+
+        conn = await pool.getConnection();
+
+        await conn.beginTransaction();
+
+        if(nick_name == undefined || nick_name == '') {
+                throw {name: 'undefinedBodyException', message: "Put User With Image - user_info not exist"};
+        }
+
+        /*
+            특수문자 예외 처리 필요한 부분
+        */
+        
+        const selectResult = await conn.query(selectQuery);
+        const selectRows = selectResult[0];
+        
+        if(selectRows.length == 0) {
+            throw "Exception : Cant Find User";
+        }
+
+        const preFileName = selectRows[0].image_name;
+
+        const result = await conn.query(query);
+        const rows = result[0];
+        
+        if (rows.affectedRows == 0)
+            throw "Exception : Cant Insert User";
+
+        if (preFileName != undefined && preFileName != null) {
+            const preFilePath = `public/images/${preFileName}`;
+            fs.access(preFilePath, fs.constants.F_OK, (err) =>{
+                if (err) console.log({name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"});
+            });
+
+            fs.unlink(preFilePath, (err) => {
+                if (err)
+                    console.log({name: 'cantDeleteUserImageException', message: "Cant Delete this UserImage"});
+                else
+                    console.log(`${preFilePath} is deleted !`);
+            });
+        } 
+
+        await req.session.save(()=>{
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end('{"success": true}'); 
+        });
+        await conn.commit();
+
+    } catch (error) {
+        console.log(error);
+        if (fileInfo != undefined) {
+            const filePath = fileInfo.path;
+            fs.access(filePath, fs.constants.F_OK, (err) =>{
+                if (err) console.log('Cant delete files');
+            });
+            
+            fs.unlink(filePath, (err) => err ?
+            console.log(err) : console.log(`${filePath} is deleted !`));
+        }   
+
+        await conn.rollback();
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end();
+    } finally {
+        conn.release();
+    }
+
+
+});
+
+router.put('/password', async (req, res) => {
+
+
+    console.log("request Ip ( Put User ) :",req.connection.remoteAddress.replace('::ffff:', ''));
+    const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
+
+    if(req.session.nick_name == undefined){
+        console.log("   Session nick is undefined ");
+        res.writeHead(401, {'Content-Type':'application/json'});
+        res.end();
+        return;
+    }
+
+    const {nick_name, password} = req.body;
+    const query = `update user set \
+    password = password("${password}"), \
+    date_updated = now() \
+    where nick_name = "${nick_name}";`;
+
+    let conn;
+
+    try {
+    
+        conn = await pool.getConnection();
+        await conn.beginTransaction();
+     
+        if(nick_name == undefined || nick_name == "" || 
+            password == undefined || password == '') {
+            throw {name: 'undefinedBodyException', message: "Put User - user_info not exist"};
+        }
+        const result = await conn.query(query);
+        const rows = result[0];
+        if (rows.affectedRows == 0)
+            throw "Exception : Cant Update User";
+        
+        await conn.commit();
+
+        req.session.nick_name = new_nick_name;
+        await req.session.save(()=>{
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end('{"success": true}'); 
+        });
+        
+    } catch (e) {
+        await conn.rollback();
+        console.log(e);
+        res.writeHead(404, {'Content-Type':'application/json'});
+        res.end('{"success": false}'); 
+    } finally {
+        conn.release();
+    }
 });
 
 router.delete('/:nick_name', async (req, res) =>{

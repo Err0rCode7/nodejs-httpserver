@@ -261,7 +261,7 @@ http://address:port/users/logout/
 ### Put A User With Image no password
 
 - Put/ `./users/image/nick`
-    - Put a user with image
+    - Put a user with image no password
 
 - Success Response : Header with Code 200
 - Fail Response : Header with Code 404 
@@ -276,6 +276,88 @@ http://address:port/users/logout/
     "pre_nick_name": "__",
     "new_nick_name": "__",
     "file": __
+}
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```
+
+### Put A User With Nick Name
+
+- Put/ `./users/nick`
+    - Put a user with nick name
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+
+
+```json
+{
+    "pre_nick_name": "__",
+    "new_nick_name": "__"
+}
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```
+
+### Put image of a user
+
+- Put/ `./users/only/image`
+    - Put image of a user
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+
+
+```json
+@multipart
+{
+    "nick_name": "__",
+    "file": __
+}
+```
+
+#### Response Form Sample
+    
+```json
+{
+    "success": "__"
+}
+```
+
+### Put A User With Password
+
+- Put/ `./users/nick`
+    - Put a user with password
+
+- Success Response : Header with Code 200
+- Fail Response : Header with Code 404 
+- Unauthorized user Response : Header with Code 401
+
+#### Request Form Sample
+
+
+```json
+{
+    "nick_name": "__",
+    "password": "__"
 }
 ```
 
