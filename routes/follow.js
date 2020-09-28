@@ -54,10 +54,11 @@ router.get('/followlist/:nickName', async (req, res) => {
         const rowFollowListQuery = resultFollowListQuery[0];
 
         
-
+        console.log(rowFollowListQuery)
         if (ip.address() != config.url().ip) {
             rowFollowListQuery.forEach(row => {
-                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+                if (row.image_url != null)
+                    row.image_url = row.image_url.replace(config.url().ip, ip.address());
             });
         }
 
@@ -125,7 +126,8 @@ router.get('/followerlist/:nickName', async (req, res) => {
 
         if (ip.address() != config.url().ip) {
             rowFollowerListQuery.forEach(row => {
-                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+                if (row.image_url != null)
+                    row.image_url = row.image_url.replace(config.url().ip, ip.address());
             });
         }
 
@@ -197,7 +199,8 @@ router.get('/forfollow/list/:nickName', async (req, res) => {
         const rowF4FListQuery = resultF4fListQuery[0];
         if (ip.address() != config.url().ip) {
             rowF4FListQuery.forEach(row => {
-                row.image_url = row.image_url.replace(config.url().ip, ip.address());
+                if (row.image_url != null)
+                    row.image_url = row.image_url.replace(config.url().ip, ip.address());
             });
         }
         /*
