@@ -307,7 +307,6 @@ router.get('/nick/:nickName', async (req, res)=>{
         conn = await pool.getConnection();
         
         const result = await conn.query(query);
-
         let rows = result[0];
         if (rows.length == 0) {
 
@@ -449,13 +448,16 @@ router.get('/nick/:nickName', async (req, res)=>{
                 i = i + 1;
             });
             let j;
+            let result = []
             for (j = capsules.length - 1; j >= 0; j-- ) {
                 if (capsules[j].nick_name != nickName && !capsules[j].members.includes(nickName)){
-                    capsules.splice(j, 1);
+                    continue
+                } else {
+                    result.push(capsules[j])
                 }
             }
             res.writeHead(200, {'Content-Type':'application/json'});
-            res.end(JSON.stringify(capsules));
+            res.end(JSON.stringify(result));
         }
 
     } catch (e) {
@@ -1759,8 +1761,15 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
         if (capsule_id == undefined || title == undefined || filesInfo == undefined || members == undefined)
             throw {name: 'undefinedBodyException', message: "Put LockedCapsule - Capsule_info not exist"};
 
-        if (!Array.isArray(members))
-            members = Array()
+        if (members == ''){
+            members = []
+        }
+            //throw {name: 'MembersException', message: "Put LockedCapsule - Members Object is not Array"};
+        else if (typeof members == typeof String()){
+            let temp = members
+            members = []
+            members.push(temp)
+        }
             //throw {name: 'MembersException', message: "Put LockedCapsule - Members Object is not Array"};
 
         // DB Transaction Start
@@ -1788,9 +1797,7 @@ router.put('/lock/images', upload.array("file"), async (req, res) => {
                                 status_temp = 0 \
                                 where capsule_id = ${capsule_id} AND \
                                 status_temp = 1;`;
-        if (members == "") {
-            members = Array()
-        }
+
         const lockedCapsuleQuery = `insert into lockedCapsule (capsule_id, expire, key_count) values (${capsule_id}, '${expire}', ${members.length} + 1);`;
        await filesInfo.forEach( item =>{
 
@@ -1883,14 +1890,14 @@ router.put('/lock', async (req, res) => {
 
     console.log("request Ip ( Put LockedCapsule ) :",req.connection.remoteAddress.replace('::ffff:', ''));
     const reqIp = req.connection.remoteAddress.replace('::ffff:', '');
-    /*
+    
     if(req.session.nick_name == undefined){
         console.log("   Session nick is undefined ");
         res.writeHead(401, {'Content-Type':'application/json'});
         res.end();
         return;
     }
-    */
+    
     let conn;
     console.log(req.body);
     let {capsule_id, members, expire} = req.body;
@@ -1916,11 +1923,16 @@ router.put('/lock', async (req, res) => {
         if ( capsule_id == undefined || title == undefined || expire == undefined || members == undefined) {
             throw {name: 'undefinedBodyException', message: "Put LockedCapsule - Capsule_info not exist"};
         }
-
-        if (!Array.isArray(members))
-            members = Array()
+        console.log(typeof members)
+        if (members == ''){
+            members = []
+        }
             //throw {name: 'MembersException', message: "Put LockedCapsule - Members Object is not Array"};
-
+        else if (typeof members == typeof String()){
+            let temp = members
+            members = []
+            members.push(temp)
+        }
         // DB Transaction Start
         await conn.beginTransaction();
 
