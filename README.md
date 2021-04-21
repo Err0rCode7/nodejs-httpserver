@@ -2,10 +2,11 @@
 CapsuleTime 앱의 Http Api와 Blob Storage Api입니다.
 
 ## CapsuleTime API EndPoints
-- [Users]()
+- [Users](/docs/capsule_time/users.md)
 - [Capsules]()
 - [Follow]()
-- [Comments]()
+- [like]()
+- [Comment]()
 - [Session]()
 
 ## Blob Storage API EndPoints
